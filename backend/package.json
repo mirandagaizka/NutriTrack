@@ -1,0 +1,19 @@
+{
+  "name": "nutritrack-backend",
+  "version": "1.0.0",
+  "description": "NutriTrack backend — Express + Supabase + Gemini",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --env-file=.env --watch server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2",
+    "cors": "^2",
+    "express": "^4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
