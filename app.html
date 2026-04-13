@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <!-- PWA Meta -->
+  <meta name="theme-color" content="#020617" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NutriTrack" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <title>NutriTrack</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#10b981', light: '#34d399', dark: '#059669' },
+          },
+          fontFamily: {
+            sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <style>
+    /* Resets táctiles */
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body { overscroll-behavior-y: contain; }
+
+    /* Safe area para el notch y home indicator */
+    .safe-top    { padding-top: env(safe-area-inset-top, 16px); }
+    .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+
+    /* Animación de la barra de progreso */
+    .progress-bar-fill {
+      transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+      will-change: width;
+    }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.8s linear infinite; }
+
+    /* Fade-in de cards */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.4s ease both; }
+
+    /* Scrollbar oculto en webkit */
+    main::-webkit-scrollbar { display: none; }
+    main { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Nav activo */
+    [data-active="true"] .nav-icon { color: #10b981; }
+    [data-active="true"] .nav-label { color: #10b981; font-weight: 600; }
+    [data-active="false"] .nav-icon { color: #475569; }
+    [data-active="false"] .nav-label { color: #475569; font-weight: 500; }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-white min-h-screen font-sans antialiased">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       CONTENEDOR PRINCIPAL (max-width centrado en tablet+)
+  ════════════════════════════════════════════════════════════ -->
+  <div class="max-w-md mx-auto min-h-screen flex flex-col relative">
+
+    <!-- ── HEADER ─────────────────────────────────────────────── -->
+    <header class="safe-top px-5 pt-4 pb-3 flex items-center justify-between shrink-0">
+      <div>
+        <div class="flex items-center gap-2">
+          <!-- Logo SVG inline -->
+          <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="32" height="32" rx="8" fill="#10b981" fill-opacity="0.15"/>
+            <path d="M16 6C11 9 9 13 10 18C11 23 14 25 16 25.5C18 25 21 23 22 18C23 13 21 9 16 6Z" fill="#10b981"/>
+            <path d="M16 25.5V11" stroke="#020617" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+          </svg>
+          <h1 class="text-xl font-bold tracking-tight text-white">NutriTrack</h1>
+        </div>
+        <p id="current-date" class="text-xs text-slate-500 mt-0.5 ml-0.5 capitalize"></p>
+      </div>
+
+      <!-- Objetivo calórico + acciones -->
+      <div class="flex items-center gap-3">
+        <div class="text-right">
+          <p class="text-xs text-slate-500">Objetivo</p>
+          <p id="header-goal" class="text-sm font-semibold text-slate-300">— kcal</p>
+        </div>
+        <!-- Botón ajustes -->
+        <button
+          id="settings-btn"
+          title="Ajustes"
+          class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center transition-all"
+        >
+          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+        <!-- Botón logout -->
+        <button
+          onclick="logout()"
+          title="Cerrar sesión"
+          class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center transition-all"
+        >
+          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" x2="9" y1="12" y2="12"/>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- ── CONTENIDO PRINCIPAL (scrollable) ───────────────────── -->
+    <main class="flex-1 overflow-y-auto px-4 pb-28 space-y-4">
+
+      <!-- ════════════════════════════════════════════════════════
+           TAB: HOY
+      ════════════════════════════════════════════════════════ -->
+      <div id="tab-today">
+
+        <!-- ── Formulario de registro ── -->
+        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up">
+          <p class="text-xs text-slate-400 uppercase tracking-widest mb-3 font-medium">Registrar alimento</p>
+          <div class="flex gap-2">
+            <input
+              id="food-input"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              placeholder="Ej: 150g de pechuga a la plancha"
+              class="flex-1 bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
+                     border border-slate-700 focus:outline-none focus:border-emerald-500/70
+                     focus:ring-1 focus:ring-emerald-500/30 transition-all"
+            />
+            <button
+              id="add-btn"
+              class="bg-emerald-500 hover:bg-emerald-400 active:scale-95
+                     disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed
+                     text-white rounded-xl px-4 py-3 font-semibold text-sm
+                     transition-all duration-150 flex items-center gap-1.5 shrink-0"
+            >
+              <!-- Ícono + -->
+              <svg id="btn-icon" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/>
+              </svg>
+              <!-- Spinner (oculto por defecto) -->
+              <svg id="btn-spinner" class="w-4 h-4 spin hidden" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+              <span id="btn-text">Añadir</span>
+            </button>
+          </div>
+          <!-- Mensaje de estado del formulario -->
+          <p id="form-status" class="text-xs mt-2 hidden"></p>
+        </div>
+
+        <!-- ── Lista de alimentos de hoy ── -->
+        <div id="entries-card" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up hidden" style="animation-delay:0.05s">
+          <p class="text-xs text-slate-400 uppercase tracking-widest mb-3 font-medium">Alimentos de hoy</p>
+          <ul id="entries-list" class="space-y-2"></ul>
+        </div>
+
+        <!-- ── Progreso de calorías ── -->
+        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.1s">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <!-- Ícono llama -->
+              <div class="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M13.5 4.938a7 7 0 11-7.627 7.96 6.5 6.5 0 013.5-7.06c.244-.143.488-.278.755-.383a.75.75 0 01.972.992 5 5 0 00-.755 3.076.75.75 0 001.02.688 5.002 5.002 0 002.135-8.273z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <span class="text-sm font-medium text-slate-200">Calorías</span>
+            </div>
+            <span id="cal-pct" class="text-sm font-semibold text-emerald-400">0%</span>
+          </div>
+
+          <div class="flex items-baseline gap-1 mb-3 ml-9">
+            <span id="cal-current" class="text-3xl font-bold text-white">0</span>
+            <span class="text-sm text-slate-500">/ <span id="cal-goal-label">—</span> kcal</span>
+          </div>
+
+          <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div
+              id="cal-bar"
+              class="h-full rounded-full progress-bar-fill bg-gradient-to-r from-emerald-500 to-emerald-400"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- ── Progreso de proteínas ── -->
+        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.15s">
+          <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center gap-2">
+              <!-- Ícono proteína -->
+              <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <svg class="w-4 h-4 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
+                </svg>
+              </div>
+              <span class="text-sm font-medium text-slate-200">Proteínas</span>
+            </div>
+            <span id="prot-pct" class="text-sm font-semibold text-blue-400">0%</span>
+          </div>
+
+          <div class="flex items-baseline gap-1 mb-3 ml-9">
+            <span id="prot-current" class="text-3xl font-bold text-white">0</span>
+            <span class="text-sm text-slate-500">/ <span id="prot-goal-label">—</span> g</span>
+          </div>
+
+          <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+            <div
+              id="prot-bar"
+              class="h-full rounded-full progress-bar-fill bg-gradient-to-r from-blue-500 to-blue-400"
+              style="width: 0%"
+            ></div>
+          </div>
+        </div>
+
+        <!-- ── Gráfico Doughnut (distribución de macros) ── -->
+        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.2s">
+          <div class="flex items-center justify-between mb-4">
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Macros de hoy</p>
+          </div>
+
+          <!-- Doughnut con valor central -->
+          <div class="relative h-44 flex items-center justify-center">
+            <canvas id="macro-chart" class="absolute inset-0"></canvas>
+            <!-- Centro del donut -->
+            <div class="relative z-10 flex flex-col items-center pointer-events-none">
+              <span id="donut-center-val" class="text-2xl font-bold text-white leading-none">0</span>
+              <span class="text-xs text-slate-500 mt-0.5">kcal</span>
+            </div>
+          </div>
+
+          <!-- Leyenda personalizada -->
+          <div class="flex justify-center gap-5 mt-4">
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0"></span>
+              <span class="text-xs text-slate-400">Proteínas</span>
+              <span id="legend-prot" class="text-xs font-semibold text-slate-200">0g</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
+              <span class="text-xs text-slate-400">Carbos</span>
+              <span id="legend-carbs" class="text-xs font-semibold text-slate-200">0g</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-2.5 h-2.5 rounded-full bg-rose-400 shrink-0"></span>
+              <span class="text-xs text-slate-400">Grasas</span>
+              <span id="legend-fats" class="text-xs font-semibold text-slate-200">0g</span>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /tab-today -->
+
+      <!-- ════════════════════════════════════════════════════════
+           TAB: SEMANA
+      ════════════════════════════════════════════════════════ -->
+      <div id="tab-week" class="hidden">
+
+        <!-- Stats rápidas -->
+        <div class="grid grid-cols-2 gap-3 fade-up">
+          <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800">
+            <p class="text-xs text-slate-500 mb-1">Promedio semanal</p>
+            <p class="text-xl font-bold text-white">
+              <span id="week-avg">—</span>
+              <span class="text-sm font-normal text-slate-500"> kcal</span>
+            </p>
+          </div>
+          <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800">
+            <p class="text-xs text-slate-500 mb-1">Mejor día</p>
+            <p class="text-xl font-bold text-white">
+              <span id="week-max">—</span>
+              <span class="text-sm font-normal text-slate-500"> kcal</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Gráfico de barras semanal -->
+        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.05s">
+          <div class="flex items-center justify-between mb-1">
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Calorías · Últimos 7 días</p>
+            <!-- Leyenda hoy -->
+            <div class="flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+              <span class="text-xs text-slate-500">Hoy</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600 mb-4">Objetivo: <span id="week-goal-label">—</span> kcal/día</p>
+          <div class="relative h-56">
+            <canvas id="weekly-chart"></canvas>
+          </div>
+        </div>
+
+      </div><!-- /tab-week -->
+
+    </main><!-- /main -->
+
+    <!-- ── BARRA DE NAVEGACIÓN INFERIOR ──────────────────────── -->
+    <nav class="fixed bottom-0 left-0 right-0 z-50">
+      <!-- Fondo con blur -->
+      <div class="max-w-md mx-auto bg-slate-900/90 backdrop-blur-xl border-t border-slate-800 safe-bottom">
+        <div class="flex">
+
+          <!-- Tab: Hoy -->
+          <button
+            id="nav-today"
+            data-active="true"
+            class="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors"
+          >
+            <svg class="nav-icon w-5 h-5 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+            <span class="nav-label text-xs transition-colors">Hoy</span>
+          </button>
+
+          <!-- Tab: Semana -->
+          <button
+            id="nav-week"
+            data-active="false"
+            class="flex-1 flex flex-col items-center justify-center py-3 gap-0.5 transition-colors"
+          >
+            <svg class="nav-icon w-5 h-5 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" x2="18" y1="20" y2="10"/>
+              <line x1="12" x2="12" y1="20" y2="4"/>
+              <line x1="6"  x2="6"  y1="20" y2="14"/>
+            </svg>
+            <span class="nav-label text-xs transition-colors">Semana</span>
+          </button>
+
+        </div>
+      </div>
+    </nav>
+
+  </div><!-- /max-w-md -->
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL: AJUSTES DE OBJETIVOS
+  ════════════════════════════════════════════════════════════ -->
+  <div
+    id="settings-modal"
+    class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center hidden"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-title"
+  >
+    <!-- Backdrop -->
+    <div id="modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+
+    <!-- Panel -->
+    <div class="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-t-3xl sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl">
+
+      <!-- Cabecera del modal -->
+      <div class="flex items-center justify-between mb-6">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center">
+            <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </div>
+          <h2 id="modal-title" class="text-base font-semibold text-white">Objetivos diarios</h2>
+        </div>
+        <button
+          id="modal-close"
+          class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center transition-all"
+          aria-label="Cerrar"
+        >
+          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Campos -->
+      <div class="space-y-4">
+        <!-- Calorías -->
+        <div>
+          <label for="goal-calories" class="block text-xs text-slate-400 uppercase tracking-widest font-medium mb-1.5">
+            Calorías objetivo
+          </label>
+          <div class="relative">
+            <input
+              id="goal-calories"
+              type="number"
+              inputmode="numeric"
+              min="500"
+              max="9999"
+              placeholder="2000"
+              class="w-full bg-slate-800 rounded-xl px-4 py-3 pr-14 text-sm text-white placeholder-slate-600
+                     border border-slate-700 focus:outline-none focus:border-emerald-500/70
+                     focus:ring-1 focus:ring-emerald-500/30 transition-all"
+            />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">kcal</span>
+          </div>
+        </div>
+
+        <!-- Proteínas -->
+        <div>
+          <label for="goal-proteins" class="block text-xs text-slate-400 uppercase tracking-widest font-medium mb-1.5">
+            Proteínas objetivo
+          </label>
+          <div class="relative">
+            <input
+              id="goal-proteins"
+              type="number"
+              inputmode="numeric"
+              min="10"
+              max="999"
+              placeholder="150"
+              class="w-full bg-slate-800 rounded-xl px-4 py-3 pr-8 text-sm text-white placeholder-slate-600
+                     border border-slate-700 focus:outline-none focus:border-blue-500/70
+                     focus:ring-1 focus:ring-blue-500/30 transition-all"
+            />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">g</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mensaje de estado del modal -->
+      <p id="modal-status" class="text-xs mt-3 hidden"></p>
+
+      <!-- Botón guardar -->
+      <button
+        id="save-goals-btn"
+        class="mt-6 w-full bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98]
+               disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed
+               text-white rounded-xl py-3 font-semibold text-sm transition-all duration-150
+               flex items-center justify-center gap-2"
+      >
+        <svg id="save-icon" class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z" clip-rule="evenodd"/>
+        </svg>
+        <svg id="save-spinner" class="w-4 h-4 spin hidden" viewBox="0 0 24 24" fill="none">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+        </svg>
+        <span id="save-text">Guardar objetivos</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="auth.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

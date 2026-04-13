@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <!-- PWA Meta -->
+  <meta name="theme-color" content="#020617" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="NutriTrack" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <title>NutriTrack — Acceder</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#10b981', light: '#34d399', dark: '#059669' },
+          },
+          fontFamily: {
+            sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+    body { overscroll-behavior-y: contain; }
+    .safe-top { padding-top: env(safe-area-inset-top, 16px); }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up { animation: fadeUp 0.4s ease both; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spin { animation: spin 0.8s linear infinite; }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-white min-h-screen font-sans antialiased flex items-center justify-center px-4">
+
+  <div class="w-full max-w-sm fade-up">
+
+    <!-- Logo -->
+    <div class="flex flex-col items-center mb-8">
+      <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 flex items-center justify-center mb-4">
+        <svg class="w-9 h-9" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="32" height="32" rx="8" fill="#10b981" fill-opacity="0.15"/>
+          <path d="M16 6C11 9 9 13 10 18C11 23 14 25 16 25.5C18 25 21 23 22 18C23 13 21 9 16 6Z" fill="#10b981"/>
+          <path d="M16 25.5V11" stroke="#020617" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+        </svg>
+      </div>
+      <h1 class="text-2xl font-bold tracking-tight text-white">NutriTrack</h1>
+      <p class="text-sm text-slate-500 mt-1">Tu seguimiento nutricional diario</p>
+    </div>
+
+    <!-- Card principal -->
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+
+      <!-- Tabs -->
+      <div class="flex border-b border-slate-800">
+        <button
+          id="tab-login"
+          class="flex-1 py-3.5 text-sm font-semibold transition-colors text-emerald-400 border-b-2 border-emerald-500"
+          onclick="switchTab('login')"
+        >
+          Iniciar sesión
+        </button>
+        <button
+          id="tab-register"
+          class="flex-1 py-3.5 text-sm font-semibold transition-colors text-slate-500 border-b-2 border-transparent"
+          onclick="switchTab('register')"
+        >
+          Crear cuenta
+        </button>
+      </div>
+
+      <!-- Formulario Login -->
+      <form id="form-login" class="p-5 space-y-4" onsubmit="handleLogin(event)">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1.5 font-medium">Email</label>
+          <input
+            id="login-email"
+            type="email"
+            autocomplete="email"
+            placeholder="tu@email.com"
+            required
+            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
+                   border border-slate-700 focus:outline-none focus:border-emerald-500/70
+                   focus:ring-1 focus:ring-emerald-500/30 transition-all"
+          />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1.5 font-medium">Contraseña</label>
+          <input
+            id="login-password"
+            type="password"
+            autocomplete="current-password"
+            placeholder="••••••••"
+            required
+            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
+                   border border-slate-700 focus:outline-none focus:border-emerald-500/70
+                   focus:ring-1 focus:ring-emerald-500/30 transition-all"
+          />
+        </div>
+        <p id="login-error" class="text-xs text-rose-400 hidden"></p>
+        <button
+          type="submit"
+          id="login-btn"
+          class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-95 disabled:bg-slate-800
+                 disabled:text-slate-600 disabled:cursor-not-allowed text-white rounded-xl py-3
+                 font-semibold text-sm transition-all duration-150 flex items-center justify-center gap-2"
+        >
+          <svg id="login-spinner" class="w-4 h-4 spin hidden" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+          <span id="login-btn-text">Entrar</span>
+        </button>
+      </form>
+
+      <!-- Formulario Registro -->
+      <form id="form-register" class="p-5 space-y-4 hidden" onsubmit="handleRegister(event)">
+        <div>
+          <label class="block text-xs text-slate-400 mb-1.5 font-medium">Email</label>
+          <input
+            id="register-email"
+            type="email"
+            autocomplete="email"
+            placeholder="tu@email.com"
+            required
+            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
+                   border border-slate-700 focus:outline-none focus:border-emerald-500/70
+                   focus:ring-1 focus:ring-emerald-500/30 transition-all"
+          />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1.5 font-medium">Contraseña</label>
+          <input
+            id="register-password"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Mínimo 6 caracteres"
+            required
+            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
+                   border border-slate-700 focus:outline-none focus:border-emerald-500/70
+                   focus:ring-1 focus:ring-emerald-500/30 transition-all"
+          />
+        </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1.5 font-medium">Confirmar contraseña</label>
+          <input
+            id="register-confirm"
+            type="password"
+            autocomplete="new-password"
+            placeholder="Repite la contraseña"
+            required
+            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
+                   border border-slate-700 focus:outline-none focus:border-emerald-500/70
+                   focus:ring-1 focus:ring-emerald-500/30 transition-all"
+          />
+        </div>
+        <p id="register-error" class="text-xs text-rose-400 hidden"></p>
+        <button
+          type="submit"
+          id="register-btn"
+          class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-95 disabled:bg-slate-800
+                 disabled:text-slate-600 disabled:cursor-not-allowed text-white rounded-xl py-3
+                 font-semibold text-sm transition-all duration-150 flex items-center justify-center gap-2"
+        >
+          <svg id="register-spinner" class="w-4 h-4 spin hidden" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+          </svg>
+          <span id="register-btn-text">Crear cuenta</span>
+        </button>
+      </form>
+
+    </div>
+
+  </div>
+
+  <script src="auth.js"></script>
+  <script>
+    // Redirigir si ya está autenticado
+    if (isLoggedIn()) {
+      window.location.href = 'app.html';
+    }
+
+    function switchTab(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('form-login').classList.toggle('hidden', !isLogin);
+      document.getElementById('form-register').classList.toggle('hidden', isLogin);
+
+      const activeClass = ['text-emerald-400', 'border-b-2', 'border-emerald-500'];
+      const inactiveClass = ['text-slate-500', 'border-b-2', 'border-transparent'];
+
+      const loginTab = document.getElementById('tab-login');
+      const registerTab = document.getElementById('tab-register');
+
+      if (isLogin) {
+        loginTab.className = `flex-1 py-3.5 text-sm font-semibold transition-colors text-emerald-400 border-b-2 border-emerald-500`;
+        registerTab.className = `flex-1 py-3.5 text-sm font-semibold transition-colors text-slate-500 border-b-2 border-transparent`;
+      } else {
+        loginTab.className = `flex-1 py-3.5 text-sm font-semibold transition-colors text-slate-500 border-b-2 border-transparent`;
+        registerTab.className = `flex-1 py-3.5 text-sm font-semibold transition-colors text-emerald-400 border-b-2 border-emerald-500`;
+      }
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const email    = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errorEl  = document.getElementById('login-error');
+      const btn      = document.getElementById('login-btn');
+      const spinner  = document.getElementById('login-spinner');
+      const btnText  = document.getElementById('login-btn-text');
+
+      errorEl.classList.add('hidden');
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      btnText.textContent = 'Entrando…';
+
+      const result = await login(email, password);
+
+      btn.disabled = false;
+      spinner.classList.add('hidden');
+      btnText.textContent = 'Entrar';
+
+      if (result.error) {
+        errorEl.textContent = result.error;
+        errorEl.classList.remove('hidden');
+      } else {
+        window.location.href = 'app.html';
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      const email    = document.getElementById('register-email').value.trim();
+      const password = document.getElementById('register-password').value;
+      const confirm  = document.getElementById('register-confirm').value;
+      const errorEl  = document.getElementById('register-error');
+      const btn      = document.getElementById('register-btn');
+      const spinner  = document.getElementById('register-spinner');
+      const btnText  = document.getElementById('register-btn-text');
+
+      errorEl.classList.add('hidden');
+
+      if (password !== confirm) {
+        errorEl.textContent = 'Las contraseñas no coinciden.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      if (password.length < 6) {
+        errorEl.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      spinner.classList.remove('hidden');
+      btnText.textContent = 'Creando cuenta…';
+
+      const result = await register(email, password);
+
+      btn.disabled = false;
+      spinner.classList.add('hidden');
+      btnText.textContent = 'Crear cuenta';
+
+      if (result.error) {
+        errorEl.textContent = result.error;
+        errorEl.classList.remove('hidden');
+      } else {
+        window.location.href = 'app.html';
+      }
+    }
+  </script>
+</body>
+</html>
