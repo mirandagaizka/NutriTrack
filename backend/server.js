@@ -366,6 +366,59 @@ app.delete('/api/entries/:id', async (req, res) => {
   return res.status(204).send();
 });
 
+// ─── POST /api/chat ───────────────────────────────────────────────────────────
+app.post('/api/chat', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { message, history = [], context = {} } = req.body;
+  if (!message || typeof message !== 'string' || !message.trim()) {
+    return res.status(400).json({ error: 'El campo "message" es obligatorio.' });
+  }
+
+  const remaining = Math.max(0, (context.goalCalories || 2000) - (context.calories || 0));
+
+  const systemPrompt = `Eres un asistente nutricional personal experto, amigable y conciso. Respondes siempre en español.
+
+Datos del usuario de hoy:
+- Calorías: ${context.calories || 0} kcal consumidas de ${context.goalCalories || 2000} kcal objetivo (quedan ${remaining} kcal)
+- Proteínas: ${context.proteins || 0}g de ${context.goalProteins || 150}g objetivo
+- Carbohidratos: ${context.carbs || 0}g
+- Grasas: ${context.fats || 0}g
+
+Cuando sugieras comidas sé específico con porciones y menciona valores nutricionales aproximados. Respuestas concisas y prácticas.`;
+
+  const contents = [];
+  for (const msg of history) {
+    contents.push({ role: msg.role, parts: [{ text: msg.text }] });
+  }
+  contents.push({ role: 'user', parts: [{ text: message.trim() }] });
+
+  try {
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents,
+        }),
+      }
+    );
+
+    if (!geminiRes.ok) throw new Error(`Gemini HTTP ${geminiRes.status}`);
+
+    const geminiData = await geminiRes.json();
+    const reply = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || 'No he podido generar una respuesta.';
+
+    return res.json({ reply });
+  } catch (err) {
+    console.error('[NutriTrack] /api/chat error:', err.message);
+    return res.status(500).json({ error: 'Error al conectar con el asistente.' });
+  }
+});
+
 // ─── HEALTHCHECK ──────────────────────────────────────────────────────────────
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 

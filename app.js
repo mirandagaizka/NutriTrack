@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Primero cargar el perfil para tener GOALS actualizados antes de pintar
   await loadProfile();
   await Promise.all([loadData(), loadEntriesToday()]);
+  initChat();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(console.error);
@@ -352,6 +353,135 @@ async function deleteEntry(id) {
   } catch (err) {
     console.error('[NutriTrack] DELETE /api/entries/:id error:', err);
     showStatus('Error al eliminar la entrada.', 'error');
+  }
+}
+
+// ─── CHAT ─────────────────────────────────────────────────────────────────────
+let chatHistory = [];
+
+function initChat() {
+  $('chat-fab').addEventListener('click', openChat);
+  $('chat-close').addEventListener('click', closeChat);
+  $('chat-send').addEventListener('click', handleChatSend);
+  $('chat-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleChatSend();
+  });
+}
+
+function openChat() {
+  $('chat-panel').classList.remove('hidden');
+  setTimeout(() => $('chat-input').focus(), 150);
+}
+
+function closeChat() {
+  $('chat-panel').classList.add('hidden');
+}
+
+async function handleChatSend() {
+  const input = $('chat-input');
+  const message = input.value.trim();
+  if (!message) return;
+
+  input.value = '';
+  appendChatMessage('user', message);
+  setChatLoading(true);
+
+  try {
+    const res = await fetch(`${API_URL}/api/chat`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        message,
+        history: chatHistory.slice(-10),
+        context: {
+          calories:     state.today?.calories  || 0,
+          proteins:     state.today?.proteins  || 0,
+          carbs:        state.today?.carbs     || 0,
+          fats:         state.today?.fats      || 0,
+          goalCalories: GOALS.calories,
+          goalProteins: GOALS.proteins,
+        },
+      }),
+    });
+
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const { reply } = await res.json();
+    appendChatMessage('model', reply);
+  } catch (err) {
+    console.error('[NutriTrack] POST /api/chat error:', err);
+    appendChatMessage('model', 'Lo siento, ha ocurrido un error. Inténtalo de nuevo.');
+  } finally {
+    setChatLoading(false);
+  }
+}
+
+function appendChatMessage(role, text) {
+  chatHistory.push({ role, text });
+
+  const messages = $('chat-messages');
+  const div = document.createElement('div');
+
+  const safeText = escapeHtml(text).replace(/\n/g, '<br>');
+
+  if (role === 'user') {
+    div.className = 'flex justify-end';
+    div.innerHTML = `
+      <div class="bg-emerald-500/20 border border-emerald-500/20 rounded-2xl rounded-tr-sm px-3.5 py-2.5 max-w-[85%]">
+        <p class="text-sm text-slate-200">${safeText}</p>
+      </div>`;
+  } else {
+    div.className = 'flex gap-2.5';
+    div.innerHTML = `
+      <div class="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0 mt-0.5">
+        <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <div class="bg-slate-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%]">
+        <p class="text-sm text-slate-200">${safeText}</p>
+      </div>`;
+  }
+
+  messages.appendChild(div);
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function setChatLoading(active) {
+  const btn     = $('chat-send');
+  const icon    = $('chat-send-icon');
+  const spinner = $('chat-send-spinner');
+  const input   = $('chat-input');
+
+  btn.disabled   = active;
+  input.disabled = active;
+  icon.classList.toggle('hidden', active);
+  spinner.classList.toggle('hidden', !active);
+
+  if (active) {
+    const messages = $('chat-messages');
+    const typing = document.createElement('div');
+    typing.id = 'chat-typing';
+    typing.className = 'flex gap-2.5';
+    typing.innerHTML = `
+      <div class="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0 mt-0.5">
+        <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+      </div>
+      <div class="bg-slate-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5">
+        <div class="flex gap-1 items-center h-5">
+          <span class="typing-dot w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+          <span class="typing-dot w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+          <span class="typing-dot w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+        </div>
+      </div>`;
+    messages.appendChild(typing);
+    messages.scrollTop = messages.scrollHeight;
+  } else {
+    document.getElementById('chat-typing')?.remove();
+    $('chat-input').focus();
   }
 }
 
