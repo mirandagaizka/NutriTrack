@@ -170,6 +170,19 @@
                    focus:ring-1 focus:ring-emerald-500/30 transition-all"
           />
         </div>
+        <div>
+          <label class="block text-xs text-slate-400 mb-1.5 font-medium">Código de invitación</label>
+          <input
+            id="register-invite"
+            type="text"
+            autocomplete="off"
+            placeholder="Introduce el código"
+            required
+            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
+                   border border-slate-700 focus:outline-none focus:border-emerald-500/70
+                   focus:ring-1 focus:ring-emerald-500/30 transition-all"
+          />
+        </div>
         <p id="register-error" class="text-xs text-rose-400 hidden"></p>
         <button
           type="submit"
@@ -247,9 +260,10 @@
 
     async function handleRegister(e) {
       e.preventDefault();
-      const email    = document.getElementById('register-email').value.trim();
-      const password = document.getElementById('register-password').value;
-      const confirm  = document.getElementById('register-confirm').value;
+      const email      = document.getElementById('register-email').value.trim();
+      const password   = document.getElementById('register-password').value;
+      const confirm    = document.getElementById('register-confirm').value;
+      const inviteCode = document.getElementById('register-invite').value.trim();
       const errorEl  = document.getElementById('register-error');
       const btn      = document.getElementById('register-btn');
       const spinner  = document.getElementById('register-spinner');
@@ -273,7 +287,7 @@
       spinner.classList.remove('hidden');
       btnText.textContent = 'Creando cuenta…';
 
-      const result = await register(email, password);
+      const result = await register(email, password, inviteCode);
 
       btn.disabled = false;
       spinner.classList.add('hidden');

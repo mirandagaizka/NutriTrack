@@ -71,10 +71,15 @@ async function getUserFromToken(req) {
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
 app.post('/api/auth/register', async (req, res) => {
-  const { email, password } = req.body;
+  const { email, password, inviteCode } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email y contraseña son obligatorios.' });
+  }
+
+  const validCode = process.env.INVITE_CODE;
+  if (validCode && inviteCode !== validCode) {
+    return res.status(403).json({ error: 'Código de invitación incorrecto.' });
   }
 
   const { data, error } = await supabase.auth.admin.createUser({

@@ -56,12 +56,12 @@ async function login(email, password) {
 
 // ─── REGISTRO ─────────────────────────────────────────────────────────────────
 
-async function register(email, password) {
+async function register(email, password, inviteCode) {
   try {
     const res = await fetch(`${API_URL}/api/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, inviteCode }),
     });
 
     const data = await res.json();
