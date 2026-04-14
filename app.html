@@ -40,7 +40,7 @@
     body { overscroll-behavior-y: contain; }
 
     /* Safe area para el notch y home indicator */
-    .safe-top    { padding-top: env(safe-area-inset-top, 16px); }
+    .safe-top    { padding-top: calc(env(safe-area-inset-top, 0px) + 20px) !important; }
     .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
 
     /* Animación de la barra de progreso */
@@ -80,7 +80,7 @@
   <div class="max-w-md mx-auto min-h-screen flex flex-col relative">
 
     <!-- ── HEADER ─────────────────────────────────────────────── -->
-    <header class="safe-top px-5 pt-4 pb-3 flex items-center justify-between shrink-0">
+    <header class="safe-top px-5 pb-3 flex items-center justify-between shrink-0">
       <div>
         <div class="flex items-center gap-2">
           <!-- Logo SVG inline -->
