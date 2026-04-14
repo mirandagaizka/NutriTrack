@@ -279,7 +279,24 @@ app.get('/api/data', async (req, res) => {
     weekly.push({ date: label, calories: Math.round(byDate[dateStr] || 0) });
   }
 
-  return res.json({ today: todaySummary, weekly });
+  // Calcular racha de días consecutivos
+  const { data: streakRows } = await supabase
+    .from('food_entries')
+    .select('date')
+    .eq('user_id', user.id)
+    .order('date', { ascending: false });
+
+  const uniqueDates = [...new Set((streakRows || []).map(r => r.date))];
+  let streak = 0;
+  const cur = new Date();
+  if (!uniqueDates.includes(today)) cur.setDate(cur.getDate() - 1);
+  while (true) {
+    const d = cur.toISOString().slice(0, 10);
+    if (uniqueDates.includes(d)) { streak++; cur.setDate(cur.getDate() - 1); }
+    else break;
+  }
+
+  return res.json({ today: todaySummary, weekly, streak });
 });
 
 // ─── GET /api/profile ────────────────────────────────────────────────────────
@@ -430,6 +447,57 @@ Cuando sugieras comidas sé específico con porciones y menciona valores nutrici
     console.error('[NutriTrack] /api/chat error:', err.message);
     return res.status(500).json({ error: 'Error al conectar con el asistente.' });
   }
+});
+
+// ─── POST /api/weight ────────────────────────────────────────────────────────
+app.post('/api/weight', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const weight = parseFloat(req.body.weight);
+  if (isNaN(weight) || weight < 20 || weight > 500) {
+    return res.status(400).json({ error: 'Peso no válido.' });
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  const { error } = await supabase
+    .from('weight_entries')
+    .upsert(
+      { user_id: user.id, weight, date: today },
+      { onConflict: 'user_id,date' }
+    );
+
+  if (error) {
+    console.error('[NutriTrack] POST /api/weight error:', error);
+    return res.status(500).json({ error: 'Error al guardar el peso.' });
+  }
+
+  return res.json({ weight, date: today });
+});
+
+// ─── GET /api/weight ──────────────────────────────────────────────────────────
+app.get('/api/weight', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29);
+  const fromDate = thirtyDaysAgo.toISOString().slice(0, 10);
+
+  const { data, error } = await supabase
+    .from('weight_entries')
+    .select('date, weight')
+    .eq('user_id', user.id)
+    .gte('date', fromDate)
+    .order('date', { ascending: true });
+
+  if (error) {
+    console.error('[NutriTrack] GET /api/weight error:', error);
+    return res.status(500).json({ error: 'Error al obtener el peso.' });
+  }
+
+  return res.json(data || []);
 });
 
 // ─── HEALTHCHECK ──────────────────────────────────────────────────────────────

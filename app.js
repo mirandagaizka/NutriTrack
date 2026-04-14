@@ -20,8 +20,9 @@ let state = {
   today:  { calories: 0, proteins: 0, carbs: 0, fats: 0 },
   weekly: [],
 };
-let macroChart  = null;
-let weeklyChart = null;
+let macroChart   = null;
+let weeklyChart  = null;
+let weightChart  = null;
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
@@ -45,9 +46,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Primero cargar el perfil para tener GOALS actualizados antes de pintar
   await loadProfile();
-  await Promise.all([loadData(), loadEntriesToday()]);
+  await Promise.all([loadData(), loadEntriesToday(), loadWeight()]);
   initChat();
   initInvite();
+  initWeightForm();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(console.error);
@@ -76,8 +78,9 @@ function initNavigation() {
       $(contentId).classList.remove('hidden');
       $(navId).setAttribute('data-active', 'true');
 
-      if (contentId === 'tab-week' && weeklyChart) {
-        setTimeout(() => weeklyChart.resize(), 50);
+      if (contentId === 'tab-week') {
+        if (weeklyChart) setTimeout(() => weeklyChart.resize(), 50);
+        if (weightChart) setTimeout(() => weightChart.resize(), 50);
       }
     });
   });
@@ -525,11 +528,181 @@ function escapeHtml(str) {
     .replace(/"/g, '&quot;');
 }
 
+// ─── RACHA ────────────────────────────────────────────────────────────────────
+function renderStreak(streak) {
+  $('streak-value').textContent = streak;
+
+  const label = $('streak-label');
+  if (streak === 0) {
+    label.textContent = 'Registra alimentos para empezar tu racha';
+  } else if (streak === 1) {
+    label.textContent = '¡Primer día! Vuelve mañana para seguir la racha';
+  } else if (streak < 7) {
+    label.textContent = `¡Vas bien! Llevas ${streak} días seguidos`;
+  } else if (streak < 30) {
+    label.textContent = `¡Increíble! ${streak} días consecutivos 🔥`;
+  } else {
+    label.textContent = `¡Leyenda! ${streak} días sin parar 🏆`;
+  }
+}
+
+// ─── PESO ─────────────────────────────────────────────────────────────────────
+function initWeightForm() {
+  $('weight-save-btn').addEventListener('click', saveWeight);
+  $('weight-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') saveWeight();
+  });
+}
+
+async function loadWeight() {
+  try {
+    const res = await fetch(`${API_URL}/api/weight`, { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const entries = await res.json();
+    renderWeightChart(entries);
+  } catch (err) {
+    console.error('[NutriTrack] GET /api/weight error:', err);
+  }
+}
+
+async function saveWeight() {
+  const input  = $('weight-input');
+  const weight = parseFloat(input.value);
+  const status = $('weight-status');
+
+  if (isNaN(weight) || weight < 20 || weight > 500) {
+    status.textContent = 'Introduce un peso válido.';
+    status.className   = 'text-xs mt-2 text-rose-400';
+    status.classList.remove('hidden');
+    return;
+  }
+
+  const btn = $('weight-save-btn');
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  try {
+    const res = await fetch(`${API_URL}/api/weight`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ weight }),
+    });
+
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    input.value = '';
+    status.textContent = '¡Peso guardado!';
+    status.className   = 'text-xs mt-2 text-emerald-400';
+    status.classList.remove('hidden');
+    setTimeout(() => status.classList.add('hidden'), 3000);
+
+    await loadWeight();
+  } catch (err) {
+    console.error('[NutriTrack] POST /api/weight error:', err);
+    status.textContent = 'Error al guardar. Inténtalo de nuevo.';
+    status.className   = 'text-xs mt-2 text-rose-400';
+    status.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Guardar';
+  }
+}
+
+function renderWeightChart(entries) {
+  const empty   = $('weight-empty');
+  const wrapper = $('weight-chart-wrapper');
+  const stats   = $('weight-stats');
+
+  if (!entries || entries.length === 0) {
+    empty.classList.remove('hidden');
+    wrapper.classList.add('hidden');
+    stats.classList.add('hidden');
+    return;
+  }
+
+  empty.classList.add('hidden');
+  wrapper.classList.remove('hidden');
+  stats.classList.remove('hidden');
+
+  // Stats: último peso y variación
+  const last = entries[entries.length - 1].weight;
+  $('weight-current').textContent = last.toFixed(1);
+  if (entries.length >= 2) {
+    const prev   = entries[entries.length - 2].weight;
+    const diff   = last - prev;
+    const sign   = diff > 0 ? '+' : '';
+    const el     = $('weight-change');
+    el.textContent = `${sign}${diff.toFixed(1)} kg`;
+    el.className   = `text-lg font-bold ${diff > 0 ? 'text-rose-400' : diff < 0 ? 'text-emerald-400' : 'text-slate-400'}`;
+  } else {
+    $('weight-change').textContent = '—';
+  }
+
+  const labels = entries.map(e => {
+    const d = new Date(e.date + 'T00:00:00');
+    return d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+  });
+  const values = entries.map(e => e.weight);
+
+  if (weightChart) {
+    weightChart.data.labels              = labels;
+    weightChart.data.datasets[0].data    = values;
+    weightChart.update('active');
+  } else {
+    weightChart = new Chart($('weight-chart').getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data:            values,
+          borderColor:     '#10b981',
+          backgroundColor: 'rgba(16,185,129,0.08)',
+          borderWidth:     2,
+          pointRadius:     3,
+          pointBackgroundColor: '#10b981',
+          tension:         0.3,
+          fill:            true,
+        }],
+      },
+      options: {
+        responsive:          true,
+        maintainAspectRatio: false,
+        animation:           { duration: 600 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            borderColor:     '#334155',
+            borderWidth:     1,
+            padding:         10,
+            callbacks: { label: (ctx) => ` ${ctx.raw} kg` },
+          },
+        },
+        scales: {
+          x: {
+            grid:   { display: false },
+            border: { display: false },
+            ticks:  { font: { size: 10 }, maxTicksLimit: 6 },
+          },
+          y: {
+            grid:   { color: '#1e293b' },
+            border: { display: false },
+            ticks:  { font: { size: 11 }, callback: (v) => `${v} kg` },
+          },
+        },
+      },
+    });
+  }
+}
+
 // ─── RENDERIZADO PRINCIPAL ────────────────────────────────────────────────────
 function renderUI(data) {
-  renderProgress(data.today  || {});
+  renderProgress(data.today   || {});
   renderMacroChart(data.today  || {});
   renderWeeklyChart(data.weekly || []);
+  renderStreak(data.streak ?? 0);
 }
 
 // ─── BARRAS DE PROGRESO ───────────────────────────────────────────────────────

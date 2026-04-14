@@ -203,6 +203,25 @@
           <ul id="entries-list" class="space-y-2"></ul>
         </div>
 
+        <!-- ── Racha ── -->
+        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.08s">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-7 h-7 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <svg class="w-4 h-4 text-orange-400" viewBox="0 0 20 20" fill="currentColor">
+                  <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
+                </svg>
+              </div>
+              <span class="text-sm font-medium text-slate-200">Racha</span>
+            </div>
+            <div class="flex items-baseline gap-1">
+              <span id="streak-value" class="text-2xl font-bold text-white">0</span>
+              <span class="text-sm text-slate-500">días</span>
+            </div>
+          </div>
+          <p id="streak-label" class="text-xs text-slate-500 mt-1.5 ml-9">Registra alimentos para empezar tu racha</p>
+        </div>
+
         <!-- ── Progreso de calorías ── -->
         <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.1s">
           <div class="flex items-center justify-between mb-1">
@@ -304,6 +323,33 @@
       ════════════════════════════════════════════════════════ -->
       <div id="tab-week" class="hidden">
 
+        <!-- ── Registro de peso ── -->
+        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up">
+          <p class="text-xs text-slate-400 uppercase tracking-widest mb-3 font-medium">Peso de hoy</p>
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <input
+                id="weight-input"
+                type="number"
+                inputmode="decimal"
+                placeholder="70.5"
+                min="20" max="500" step="0.1"
+                class="w-full bg-slate-800 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-600
+                       border border-slate-700 focus:outline-none focus:border-emerald-500/70
+                       focus:ring-1 focus:ring-emerald-500/30 transition-all"
+              />
+              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">kg</span>
+            </div>
+            <button
+              id="weight-save-btn"
+              class="bg-emerald-500 hover:bg-emerald-400 active:scale-95
+                     disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed
+                     text-white rounded-xl px-4 py-3 font-semibold text-sm transition-all shrink-0"
+            >Guardar</button>
+          </div>
+          <p id="weight-status" class="text-xs mt-2 hidden"></p>
+        </div>
+
         <!-- Stats rápidas -->
         <div class="grid grid-cols-2 gap-3 fade-up">
           <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800">
@@ -335,6 +381,27 @@
           <p class="text-xs text-slate-600 mb-4">Objetivo: <span id="week-goal-label">—</span> kcal/día</p>
           <div class="relative h-56">
             <canvas id="weekly-chart"></canvas>
+          </div>
+        </div>
+
+        <!-- Gráfico de peso -->
+        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.1s">
+          <div class="flex items-center justify-between mb-1">
+            <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Peso · Últimos 30 días</p>
+          </div>
+          <div id="weight-stats" class="flex gap-5 mb-3 hidden">
+            <div>
+              <p class="text-xs text-slate-500">Último registro</p>
+              <p class="text-lg font-bold text-white"><span id="weight-current">—</span> <span class="text-sm font-normal text-slate-500">kg</span></p>
+            </div>
+            <div>
+              <p class="text-xs text-slate-500">Variación</p>
+              <p id="weight-change" class="text-lg font-bold text-slate-400">—</p>
+            </div>
+          </div>
+          <div id="weight-empty" class="py-6 text-center text-slate-600 text-sm">Aún no hay registros de peso</div>
+          <div id="weight-chart-wrapper" class="relative h-48 hidden">
+            <canvas id="weight-chart"></canvas>
           </div>
         </div>
 
