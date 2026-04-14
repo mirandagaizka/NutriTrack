@@ -6,6 +6,8 @@
 import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
+import webpush from 'web-push';
+import cron from 'node-cron';
 
 const app = express();
 
@@ -18,7 +20,24 @@ const {
   FRONTEND_URL,
   INVITE_CODE,
   ADMIN_EMAIL,
+  VAPID_PUBLIC_KEY,
+  VAPID_PRIVATE_KEY,
+  VAPID_SUBJECT,
 } = process.env;
+
+// Configurar web-push si hay claves VAPID
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  webpush.setVapidDetails(
+    VAPID_SUBJECT || 'mailto:admin@nutritrack.app',
+    VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY
+  );
+}
+
+// Helper: generar código de grupo aleatorio
+function generateGroupCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !GEMINI_API_KEY) {
   console.error('[NutriTrack] Faltan variables de entorno. Revisa .env');
@@ -73,7 +92,7 @@ async function getUserFromToken(req) {
 
 // ─── POST /api/auth/register ──────────────────────────────────────────────────
 app.post('/api/auth/register', async (req, res) => {
-  const { email, password, inviteCode } = req.body;
+  const { email, password, inviteCode, nickname } = req.body;
 
   if (!email || !password) {
     return res.status(400).json({ error: 'Email y contraseña son obligatorios.' });
@@ -105,6 +124,14 @@ app.post('/api/auth/register', async (req, res) => {
 
   if (loginErr) {
     return res.status(500).json({ error: 'Cuenta creada pero no se pudo iniciar sesión.' });
+  }
+
+  // Guardar nickname en el perfil
+  if (nickname && nickname.trim()) {
+    await supabase.from('user_profiles').upsert(
+      { user_id: session.user.id, nickname: nickname.trim(), target_calories: 2000, target_proteins: 150 },
+      { onConflict: 'user_id' }
+    );
   }
 
   return res.json({
@@ -306,7 +333,7 @@ app.get('/api/profile', async (req, res) => {
 
   const { data, error } = await supabase
     .from('user_profiles')
-    .select('target_calories, target_proteins')
+    .select('target_calories, target_proteins, nickname')
     .eq('user_id', user.id)
     .maybeSingle();
 
@@ -332,6 +359,7 @@ app.post('/api/profile', async (req, res) => {
 
   const target_calories = parseInt(req.body.target_calories, 10);
   const target_proteins = parseInt(req.body.target_proteins, 10);
+  const nickname        = req.body.nickname ? String(req.body.nickname).trim().slice(0, 30) : undefined;
 
   if (isNaN(target_calories) || isNaN(target_proteins) || target_calories < 1 || target_proteins < 1) {
     return res.status(400).json({ error: 'Los objetivos deben ser números positivos.' });
@@ -340,7 +368,7 @@ app.post('/api/profile', async (req, res) => {
   const { error } = await supabase
     .from('user_profiles')
     .upsert(
-      { user_id: user.id, target_calories, target_proteins, updated_at: new Date().toISOString() },
+      { user_id: user.id, target_calories, target_proteins, ...(nickname ? { nickname } : {}), updated_at: new Date().toISOString() },
       { onConflict: 'user_id' }
     );
 
@@ -349,7 +377,7 @@ app.post('/api/profile', async (req, res) => {
     return res.status(500).json({ error: 'Error al guardar el perfil.' });
   }
 
-  return res.json({ target_calories, target_proteins });
+  return res.json({ target_calories, target_proteins, ...(nickname ? { nickname } : {}) });
 });
 
 // ─── GET /api/entries/today ───────────────────────────────────────────────────
@@ -499,6 +527,222 @@ app.get('/api/weight', async (req, res) => {
 
   return res.json(data || []);
 });
+
+// ─── GET /api/push/vapid-key ──────────────────────────────────────────────────
+app.get('/api/push/vapid-key', (_, res) => {
+  if (!VAPID_PUBLIC_KEY) return res.status(503).json({ error: 'Push no configurado.' });
+  return res.json({ publicKey: VAPID_PUBLIC_KEY });
+});
+
+// ─── POST /api/push/subscribe ─────────────────────────────────────────────────
+app.post('/api/push/subscribe', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { subscription } = req.body;
+  if (!subscription) return res.status(400).json({ error: 'Suscripción requerida.' });
+
+  const { error } = await supabase
+    .from('push_subscriptions')
+    .upsert({ user_id: user.id, subscription }, { onConflict: 'user_id' });
+
+  if (error) {
+    console.error('[NutriTrack] push subscribe error:', error);
+    return res.status(500).json({ error: 'Error al guardar la suscripción.' });
+  }
+  return res.json({ ok: true });
+});
+
+// ─── DELETE /api/push/unsubscribe ─────────────────────────────────────────────
+app.delete('/api/push/unsubscribe', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  await supabase.from('push_subscriptions').delete().eq('user_id', user.id);
+  return res.json({ ok: true });
+});
+
+// ─── POST /api/groups ─────────────────────────────────────────────────────────
+app.post('/api/groups', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { name } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'El nombre es obligatorio.' });
+
+  // Generar código único
+  let code, exists = true;
+  while (exists) {
+    code = generateGroupCode();
+    const { data } = await supabase.from('competition_groups').select('id').eq('code', code).maybeSingle();
+    exists = !!data;
+  }
+
+  const { data: group, error } = await supabase
+    .from('competition_groups')
+    .insert({ name: name.trim(), code, created_by: user.id })
+    .select()
+    .single();
+
+  if (error) {
+    console.error('[NutriTrack] create group error:', error);
+    return res.status(500).json({ error: 'Error al crear el grupo.' });
+  }
+
+  // Añadir creador como miembro
+  await supabase.from('group_members').insert({ group_id: group.id, user_id: user.id });
+
+  return res.json(group);
+});
+
+// ─── POST /api/groups/join ────────────────────────────────────────────────────
+app.post('/api/groups/join', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Código requerido.' });
+
+  const { data: group, error } = await supabase
+    .from('competition_groups')
+    .select('*')
+    .eq('code', code.toUpperCase())
+    .maybeSingle();
+
+  if (error || !group) return res.status(404).json({ error: 'Grupo no encontrado. Revisa el código.' });
+
+  const { error: memberError } = await supabase
+    .from('group_members')
+    .upsert({ group_id: group.id, user_id: user.id }, { onConflict: 'group_id,user_id' });
+
+  if (memberError) {
+    console.error('[NutriTrack] join group error:', memberError);
+    return res.status(500).json({ error: 'Error al unirte al grupo.' });
+  }
+
+  return res.json(group);
+});
+
+// ─── GET /api/groups ──────────────────────────────────────────────────────────
+app.get('/api/groups', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { data, error } = await supabase
+    .from('group_members')
+    .select('competition_groups(id, name, code, created_by)')
+    .eq('user_id', user.id);
+
+  if (error) {
+    console.error('[NutriTrack] get groups error:', error);
+    return res.status(500).json({ error: 'Error al obtener los grupos.' });
+  }
+
+  const groups = (data || []).map(row => ({
+    ...row.competition_groups,
+    isOwner: row.competition_groups.created_by === user.id,
+  }));
+
+  return res.json(groups);
+});
+
+// ─── GET /api/groups/:id/ranking ─────────────────────────────────────────────
+app.get('/api/groups/:id/ranking', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { id: groupId } = req.params;
+
+  const { data: membership } = await supabase
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', groupId)
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!membership) return res.status(403).json({ error: 'No perteneces a este grupo.' });
+
+  const { data: members } = await supabase
+    .from('group_members')
+    .select('user_id')
+    .eq('group_id', groupId);
+
+  // Lunes de la semana actual
+  const now = new Date();
+  const day = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  monday.setHours(0, 0, 0, 0);
+  const weekStart = monday.toISOString().slice(0, 10);
+
+  const calcScore = (entries, goal) => {
+    const byDate = {};
+    for (const e of entries) byDate[e.date] = (byDate[e.date] || 0) + e.calories;
+    let days = 0, onGoal = 0;
+    for (const cals of Object.values(byDate)) {
+      days++;
+      const ratio = cals / goal;
+      if (ratio >= 0.8 && ratio <= 1.15) onGoal++;
+    }
+    return days * 10 + onGoal * 5;
+  };
+
+  const ranking = await Promise.all((members || []).map(async ({ user_id }) => {
+    const [profileRes, entriesRes, authRes] = await Promise.all([
+      supabase.from('user_profiles').select('nickname, target_calories').eq('user_id', user_id).maybeSingle(),
+      supabase.from('food_entries').select('date, calories').eq('user_id', user_id),
+      supabase.auth.admin.getUserById(user_id),
+    ]);
+
+    const goal       = profileRes.data?.target_calories || 2000;
+    const name       = profileRes.data?.nickname || authRes.data?.user?.email?.split('@')[0] || 'Usuario';
+    const allEntries = entriesRes.data || [];
+    const weekEntries = allEntries.filter(e => e.date >= weekStart);
+
+    return {
+      userId:      user_id,
+      name,
+      weeklyScore: calcScore(weekEntries, goal),
+      totalScore:  calcScore(allEntries, goal),
+      isYou:       user_id === user.id,
+    };
+  }));
+
+  return res.json(ranking);
+});
+
+// ─── CRON: notificaciones push ────────────────────────────────────────────────
+if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
+  cron.schedule('0 7-23 * * *', async () => {
+    console.log('[NutriTrack] Comprobando notificaciones push...');
+    const { data: subs } = await supabase.from('push_subscriptions').select('*');
+    const now = new Date();
+    const sixHoursAgo = new Date(now - 6 * 60 * 60 * 1000);
+
+    for (const sub of subs || []) {
+      if (sub.last_notified_at && new Date(sub.last_notified_at) > sixHoursAgo) continue;
+
+      const { data: recent } = await supabase
+        .from('food_entries')
+        .select('id')
+        .eq('user_id', sub.user_id)
+        .gte('created_at', sixHoursAgo.toISOString())
+        .limit(1);
+
+      if (recent && recent.length > 0) continue;
+
+      try {
+        await webpush.sendNotification(
+          sub.subscription,
+          JSON.stringify({ title: 'NutriTrack 🥗', body: '¿Has registrado lo que has comido? ¡Mantén tu racha!' })
+        );
+        await supabase.from('push_subscriptions').update({ last_notified_at: now.toISOString() }).eq('id', sub.id);
+      } catch (err) {
+        if (err.statusCode === 410) await supabase.from('push_subscriptions').delete().eq('id', sub.id);
+      }
+    }
+  });
+}
 
 // ─── HEALTHCHECK ──────────────────────────────────────────────────────────────
 app.get('/health', (_, res) => res.json({ status: 'ok' }));

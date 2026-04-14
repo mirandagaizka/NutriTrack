@@ -14,6 +14,13 @@ let GOALS = {
 
 let isAdmin    = false;
 let inviteCode = '';
+let nickname   = '';
+
+// Estado grupos
+let userGroups       = [];
+let activeGroupId    = null;
+let activeRankingTab = 'week';
+let rankingData      = [];
 
 // ─── ESTADO GLOBAL ────────────────────────────────────────────────────────────
 let state = {
@@ -46,10 +53,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Primero cargar el perfil para tener GOALS actualizados antes de pintar
   await loadProfile();
-  await Promise.all([loadData(), loadEntriesToday(), loadWeight()]);
+  await Promise.all([loadData(), loadEntriesToday(), loadWeight(), loadGroups()]);
   initChat();
   initInvite();
   initWeightForm();
+  initGroupsForms();
+  initNotifToggle();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(console.error);
@@ -65,8 +74,9 @@ function renderDate() {
 // ─── NAVEGACIÓN ───────────────────────────────────────────────────────────────
 function initNavigation() {
   const TABS = [
-    { navId: 'nav-today', contentId: 'tab-today' },
-    { navId: 'nav-week',  contentId: 'tab-week'  },
+    { navId: 'nav-today',  contentId: 'tab-today'  },
+    { navId: 'nav-week',   contentId: 'tab-week'   },
+    { navId: 'nav-groups', contentId: 'tab-groups' },
   ];
 
   TABS.forEach(({ navId, contentId }) => {
@@ -109,6 +119,7 @@ async function loadProfile() {
     GOALS.proteins = profile.target_proteins || 150;
     isAdmin    = !!profile.isAdmin;
     inviteCode = profile.inviteCode || '';
+    nickname   = profile.nickname || '';
     updateGoalLabels();
   } catch (err) {
     console.error('[NutriTrack] GET /api/profile error:', err);
@@ -526,6 +537,244 @@ function escapeHtml(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+// ─── GRUPOS ───────────────────────────────────────────────────────────────────
+function initGroupsForms() {
+  $('btn-create-group').addEventListener('click', () => {
+    $('form-create-group').classList.toggle('hidden');
+    $('form-join-group').classList.add('hidden');
+  });
+  $('btn-join-group').addEventListener('click', () => {
+    $('form-join-group').classList.toggle('hidden');
+    $('form-create-group').classList.add('hidden');
+  });
+  $('btn-create-group-cancel').addEventListener('click', () => $('form-create-group').classList.add('hidden'));
+  $('btn-join-group-cancel').addEventListener('click',   () => $('form-join-group').classList.add('hidden'));
+  $('btn-create-group-confirm').addEventListener('click', handleCreateGroup);
+  $('btn-join-group-confirm').addEventListener('click',   handleJoinGroup);
+  $('group-code-input').addEventListener('input', (e) => {
+    e.target.value = e.target.value.toUpperCase();
+  });
+}
+
+async function loadGroups() {
+  try {
+    const res = await fetch(`${API_URL}/api/groups`, { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error();
+    userGroups = await res.json();
+    renderGroupsList();
+  } catch (err) {
+    console.error('[NutriTrack] GET /api/groups error:', err);
+  }
+}
+
+function renderGroupsList() {
+  const container = $('groups-list');
+  if (!userGroups.length) {
+    container.innerHTML = `<p class="text-sm text-slate-500 text-center py-4">Aún no perteneces a ningún grupo.<br>Crea uno o únete con un código.</p>`;
+    return;
+  }
+
+  container.innerHTML = userGroups.map(g => `
+    <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 cursor-pointer hover:border-emerald-500/40 transition-all"
+         onclick="selectGroup('${g.id}')">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-semibold text-white">${escapeHtml(g.name)}</p>
+          ${g.isOwner ? `<p class="text-xs text-slate-500 mt-0.5">Código: <span class="text-emerald-400 font-mono font-semibold">${g.code}</span></p>` : '<p class="text-xs text-slate-500 mt-0.5">Miembro</p>'}
+        </div>
+        <svg class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="9 18 15 12 9 6"/>
+        </svg>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function selectGroup(groupId) {
+  activeGroupId = groupId;
+  $('ranking-panel').classList.remove('hidden');
+  $('ranking-list').innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Cargando ranking…</p>`;
+  $('ranking-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const res = await fetch(`${API_URL}/api/groups/${groupId}/ranking`, { headers: authHeaders() });
+    if (!res.ok) throw new Error();
+    rankingData = await res.json();
+    renderRanking();
+  } catch (err) {
+    console.error('[NutriTrack] GET ranking error:', err);
+    $('ranking-list').innerHTML = `<p class="text-xs text-rose-400 text-center py-4">Error al cargar el ranking.</p>`;
+  }
+}
+
+function switchRankTab(tab) {
+  activeRankingTab = tab;
+  $('rank-tab-week').className  = tab === 'week'
+    ? 'flex-1 py-3 text-xs font-semibold text-emerald-400 border-b-2 border-emerald-500'
+    : 'flex-1 py-3 text-xs font-semibold text-slate-500 border-b-2 border-transparent';
+  $('rank-tab-total').className = tab === 'total'
+    ? 'flex-1 py-3 text-xs font-semibold text-emerald-400 border-b-2 border-emerald-500'
+    : 'flex-1 py-3 text-xs font-semibold text-slate-500 border-b-2 border-transparent';
+  renderRanking();
+}
+
+function renderRanking() {
+  const scoreKey = activeRankingTab === 'week' ? 'weeklyScore' : 'totalScore';
+  const sorted   = [...rankingData].sort((a, b) => b[scoreKey] - a[scoreKey]);
+  const medals   = ['🥇', '🥈', '🥉'];
+
+  $('ranking-list').innerHTML = sorted.map((member, i) => `
+    <div class="flex items-center gap-3 py-2 ${member.isYou ? 'bg-emerald-500/5 -mx-4 px-4 rounded-xl' : ''}">
+      <span class="text-base w-6 text-center">${medals[i] || `${i + 1}`}</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium text-slate-200 truncate">${escapeHtml(member.name)} ${member.isYou ? '<span class="text-xs text-emerald-400">(tú)</span>' : ''}</p>
+      </div>
+      <span class="text-sm font-bold text-white">${member[scoreKey]} <span class="text-xs font-normal text-slate-500">pts</span></span>
+    </div>
+  `).join('');
+}
+
+async function handleCreateGroup() {
+  const name     = $('group-name-input').value.trim();
+  const statusEl = $('create-group-status');
+  if (!name) {
+    statusEl.textContent = 'Escribe un nombre para el grupo.';
+    statusEl.className   = 'text-xs mt-2 text-rose-400';
+    statusEl.classList.remove('hidden');
+    return;
+  }
+
+  const btn = $('btn-create-group-confirm');
+  btn.disabled = true; btn.textContent = 'Creando…';
+
+  try {
+    const res = await fetch(`${API_URL}/api/groups`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ name }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error || 'Error');
+    const group = await res.json();
+    $('group-name-input').value = '';
+    $('form-create-group').classList.add('hidden');
+    await loadGroups();
+    statusEl.textContent = `Grupo creado. Código: ${group.code}`;
+    statusEl.className   = 'text-xs mt-2 text-emerald-400';
+    statusEl.classList.remove('hidden');
+  } catch (err) {
+    statusEl.textContent = err.message;
+    statusEl.className   = 'text-xs mt-2 text-rose-400';
+    statusEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Crear';
+  }
+}
+
+async function handleJoinGroup() {
+  const code     = $('group-code-input').value.trim().toUpperCase();
+  const statusEl = $('join-group-status');
+  if (!code) {
+    statusEl.textContent = 'Introduce el código del grupo.';
+    statusEl.className   = 'text-xs mt-2 text-rose-400';
+    statusEl.classList.remove('hidden');
+    return;
+  }
+
+  const btn = $('btn-join-group-confirm');
+  btn.disabled = true; btn.textContent = 'Uniéndome…';
+
+  try {
+    const res = await fetch(`${API_URL}/api/groups/join`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({ code }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error || 'Error');
+    $('group-code-input').value = '';
+    $('form-join-group').classList.add('hidden');
+    await loadGroups();
+  } catch (err) {
+    statusEl.textContent = err.message;
+    statusEl.className   = 'text-xs mt-2 text-rose-400';
+    statusEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Unirme';
+  }
+}
+
+// ─── NOTIFICACIONES PUSH ──────────────────────────────────────────────────────
+function initNotifToggle() {
+  const isSubscribed = localStorage.getItem('nt_push') === '1';
+  updateNotifToggleUI(isSubscribed);
+}
+
+function updateNotifToggleUI(active) {
+  const toggle = $('notif-toggle');
+  const dot    = $('notif-dot');
+  if (!toggle) return;
+  toggle.className = `relative w-11 h-6 rounded-full transition-colors ${active ? 'bg-emerald-500' : 'bg-slate-700'}`;
+  dot.style.transform = active ? 'translateX(20px)' : 'translateX(0)';
+}
+
+async function toggleNotifications() {
+  if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+    showModalStatus('Tu navegador no soporta notificaciones push.', 'error');
+    return;
+  }
+
+  const isSubscribed = localStorage.getItem('nt_push') === '1';
+
+  if (isSubscribed) {
+    // Desuscribirse
+    try {
+      const reg  = await navigator.serviceWorker.ready;
+      const sub  = await reg.pushManager.getSubscription();
+      if (sub) await sub.unsubscribe();
+      await fetch(`${API_URL}/api/push/unsubscribe`, { method: 'DELETE', headers: authHeaders() });
+      localStorage.removeItem('nt_push');
+      updateNotifToggleUI(false);
+      showModalStatus('Recordatorios desactivados.', 'success');
+    } catch (err) {
+      console.error('[NutriTrack] unsubscribe error:', err);
+    }
+  } else {
+    // Suscribirse
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      showModalStatus('Permiso de notificaciones denegado.', 'error');
+      return;
+    }
+
+    try {
+      // Obtener VAPID public key del backend
+      const keyRes = await fetch(`${API_URL}/api/push/vapid-key`);
+      if (!keyRes.ok) { showModalStatus('Push no configurado aún.', 'error'); return; }
+      const { publicKey } = await keyRes.json();
+
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.subscribe({
+        userVisibleOnly:      true,
+        applicationServerKey: urlBase64ToUint8Array(publicKey),
+      });
+
+      await fetch(`${API_URL}/api/push/subscribe`, {
+        method: 'POST', headers: authHeaders(), body: JSON.stringify({ subscription: sub }),
+      });
+
+      localStorage.setItem('nt_push', '1');
+      updateNotifToggleUI(true);
+      showModalStatus('¡Recordatorios activados!', 'success');
+    } catch (err) {
+      console.error('[NutriTrack] subscribe error:', err);
+      showModalStatus('Error al activar notificaciones.', 'error');
+    }
+  }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64  = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const raw     = atob(base64);
+  return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
 }
 
 // ─── RACHA ────────────────────────────────────────────────────────────────────

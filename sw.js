@@ -1,5 +1,5 @@
 // ─── NutriTrack Service Worker ────────────────────────────────────────────────
-const CACHE_NAME = 'nutritrack-v5';
+const CACHE_NAME = 'nutritrack-v6';
 const APP_SHELL = [
   './',
   './index.html',
@@ -66,4 +66,22 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cached) => cached || fetch(event.request))
   );
+});
+
+// ─── Push notifications ────────────────────────────────────────────────────────
+self.addEventListener('push', (event) => {
+  const data = event.data?.json() ?? {};
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'NutriTrack', {
+      body:  data.body || '¿Has registrado lo que has comido hoy?',
+      icon:  './icons/icon-192.png',
+      badge: './icons/icon-192.png',
+      tag:   'nutritrack-reminder',
+    })
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(clients.openWindow('./app.html'));
 });

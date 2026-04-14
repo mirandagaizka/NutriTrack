@@ -11,7 +11,9 @@
   "dependencies": {
     "@supabase/supabase-js": "^2",
     "cors": "^2",
-    "express": "^4"
+    "express": "^4",
+    "web-push": "^3",
+    "node-cron": "^3"
   },
   "engines": {
     "node": ">=18"
