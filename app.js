@@ -12,6 +12,9 @@ let GOALS = {
   proteins: 150,
 };
 
+let isAdmin    = false;
+let inviteCode = '';
+
 // ─── ESTADO GLOBAL ────────────────────────────────────────────────────────────
 let state = {
   today:  { calories: 0, proteins: 0, carbs: 0, fats: 0 },
@@ -44,6 +47,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   await loadProfile();
   await Promise.all([loadData(), loadEntriesToday()]);
   initChat();
+  initInvite();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(console.error);
@@ -100,6 +104,8 @@ async function loadProfile() {
     const profile = await res.json();
     GOALS.calories = profile.target_calories || 2000;
     GOALS.proteins = profile.target_proteins || 150;
+    isAdmin    = !!profile.isAdmin;
+    inviteCode = profile.inviteCode || '';
     updateGoalLabels();
   } catch (err) {
     console.error('[NutriTrack] GET /api/profile error:', err);
@@ -354,6 +360,32 @@ async function deleteEntry(id) {
     console.error('[NutriTrack] DELETE /api/entries/:id error:', err);
     showStatus('Error al eliminar la entrada.', 'error');
   }
+}
+
+// ─── INVITAR ──────────────────────────────────────────────────────────────────
+function initInvite() {
+  if (!isAdmin || !inviteCode) return;
+
+  const btn = $('invite-btn');
+  btn.classList.remove('hidden');
+  btn.classList.add('flex');
+
+  btn.addEventListener('click', async () => {
+    const appUrl  = window.location.origin + window.location.pathname.replace('app.html', '');
+    const message = `¡Te invito a NutriTrack! 🥗\nLleva el control de tu alimentación diaria.\n\n📲 Descárgala aquí: ${appUrl}\n\nUsa el código de invitación: ${inviteCode}`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ text: message });
+      } catch (err) {
+        if (err.name !== 'AbortError') console.error('[NutriTrack] share error:', err);
+      }
+    } else {
+      // Fallback: copiar al portapapeles en desktop
+      await navigator.clipboard.writeText(message);
+      showStatus('Mensaje copiado al portapapeles.', 'success');
+    }
+  });
 }
 
 // ─── CHAT ─────────────────────────────────────────────────────────────────────

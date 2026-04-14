@@ -16,6 +16,8 @@ const {
   GEMINI_API_KEY,
   PORT = 3000,
   FRONTEND_URL,
+  INVITE_CODE,
+  ADMIN_EMAIL,
 } = process.env;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !GEMINI_API_KEY) {
@@ -296,8 +298,14 @@ app.get('/api/profile', async (req, res) => {
     return res.status(500).json({ error: 'Error al obtener el perfil.' });
   }
 
-  // Si no existe perfil devolvemos los valores por defecto
-  return res.json(data || { target_calories: 2000, target_proteins: 150 });
+  const profile = data || { target_calories: 2000, target_proteins: 150 };
+  const isAdmin = ADMIN_EMAIL && user.email === ADMIN_EMAIL;
+
+  return res.json({
+    ...profile,
+    isAdmin: !!isAdmin,
+    ...(isAdmin && INVITE_CODE ? { inviteCode: INVITE_CODE } : {}),
+  });
 });
 
 // ─── POST /api/profile ────────────────────────────────────────────────────────
