@@ -1313,6 +1313,7 @@ function gymExerciseCard(ex) {
       </button>
 
       <div id="gym-chart-section-${ex.id}" class="hidden border-t border-slate-800 p-4">
+        <div id="gym-pr-${ex.id}" class="mb-3"></div>
         <div id="gym-chart-wrapper-${ex.id}" class="relative h-36 mb-3">
           <canvas id="gym-chart-${ex.id}"></canvas>
         </div>
@@ -1403,11 +1404,15 @@ async function loadAndRenderGymChart(exerciseId) {
   renderGymChart(exerciseId, gymSetsCache[exerciseId]);
 }
 
+function calc1RM(weight, reps) {
+  return Math.round(weight * (1 + reps / 30) * 10) / 10;
+}
+
 function renderGymChart(exerciseId, sets) {
   const canvas = $(`gym-chart-${exerciseId}`);
   if (!canvas) return;
 
-  // Series de hoy
+  // Series de hoy (con 1RM calculado)
   const today     = new Date().toISOString().slice(0, 10);
   const todaySets = sets.filter(s => s.date === today);
   const todayEl   = $(`gym-sets-today-${exerciseId}`);
@@ -1416,7 +1421,10 @@ function renderGymChart(exerciseId, sets) {
       <p class="text-xs text-slate-500 uppercase tracking-widest mb-2 mt-1">Hoy</p>
       ${todaySets.map(s => `
         <div class="flex items-center justify-between py-1.5 border-b border-slate-800 last:border-0">
-          <span class="text-sm text-slate-300">${s.weight} kg × ${s.reps} reps</span>
+          <div>
+            <span class="text-sm text-slate-300">${s.weight} kg × ${s.reps} reps</span>
+            <span class="text-xs text-violet-400 ml-2">1RM ~${calc1RM(s.weight, s.reps)} kg</span>
+          </div>
           <button onclick="deleteGymSet('${s.id}','${exerciseId}')"
             class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all text-slate-500">
             <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
@@ -1428,14 +1436,33 @@ function renderGymChart(exerciseId, sets) {
     ` : '<p class="text-xs text-slate-600 text-center py-2">Sin series hoy</p>';
   }
 
-  // Máximo peso por fecha para el gráfico
+  // 1RM máximo por fecha para el gráfico (fórmula de Epley)
   const byDate = {};
   sets.forEach(s => {
-    if (!byDate[s.date] || s.weight > byDate[s.date]) byDate[s.date] = s.weight;
+    const rm = calc1RM(s.weight, s.reps);
+    if (!byDate[s.date] || rm > byDate[s.date]) byDate[s.date] = rm;
   });
   const dates  = Object.keys(byDate).sort();
   const labels = dates.map(d => new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }));
   const values = dates.map(d => byDate[d]);
+
+  // PR histórico
+  const allTimePR  = values.length > 0 ? Math.max(...values) : null;
+  const todayPR    = byDate[today] || null;
+  const isNewPR    = todayPR !== null && todayPR >= (allTimePR || 0) && dates.length > 1;
+  const prEl       = $(`gym-pr-${exerciseId}`);
+  if (prEl && allTimePR) {
+    prEl.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-slate-500 uppercase tracking-widest">Récord</span>
+          <span class="text-sm font-bold text-violet-400">${allTimePR} kg</span>
+          <span class="text-xs text-slate-600">(1RM estimado)</span>
+        </div>
+        ${isNewPR ? '<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400">¡Nuevo PR!</span>' : ''}
+      </div>
+    `;
+  }
   const wrapper = $(`gym-chart-wrapper-${exerciseId}`);
 
   if (dates.length === 0) {
@@ -1475,7 +1502,7 @@ function renderGymChart(exerciseId, sets) {
             borderColor:     '#334155',
             borderWidth:     1,
             padding:         10,
-            callbacks: { label: (ctx) => ` ${ctx.raw} kg` },
+            callbacks: { label: (ctx) => ` 1RM estimado: ${ctx.raw} kg` },
           },
         },
         scales: {
