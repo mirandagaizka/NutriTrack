@@ -498,6 +498,9 @@
       ════════════════════════════════════════════════════════ -->
       <div id="tab-gym" class="hidden space-y-4">
 
+        <!-- Sección compañero (renderizada por JS) -->
+        <div id="gym-partner-section" class="fade-up"></div>
+
         <!-- Cabecera -->
         <div class="flex items-center justify-between fade-up">
           <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Mis ejercicios</p>
@@ -866,6 +869,38 @@
                  disabled:text-slate-600 disabled:cursor-not-allowed text-white rounded-xl py-3
                  font-semibold text-sm transition-all duration-150">
           Añadir ejercicio
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MODAL: UNIRSE A COMPAÑERO GYM
+  ════════════════════════════════════════════════════════════ -->
+  <div id="gym-join-modal" class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center hidden" role="dialog" aria-modal="true">
+    <div id="gym-join-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-t-3xl sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-base font-semibold text-white">Unirse con código</h2>
+        <button id="gym-join-close" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center transition-all">
+          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs text-slate-400 uppercase tracking-widest font-medium mb-1.5">Código de tu compañero</label>
+          <input id="gym-join-code" type="text" autocomplete="off" placeholder="Ej: AB3X7K" maxlength="6"
+            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 uppercase
+                   border border-slate-700 focus:outline-none focus:border-emerald-500/70
+                   focus:ring-1 focus:ring-emerald-500/30 transition-all tracking-widest text-center font-mono text-lg"/>
+        </div>
+        <p id="gym-join-error" class="text-xs text-rose-400 hidden"></p>
+        <button id="gym-join-save"
+          class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-95 disabled:bg-slate-800
+                 disabled:text-slate-600 text-white rounded-xl py-3 font-semibold text-sm transition-all">
+          Vincularme
         </button>
       </div>
     </div>

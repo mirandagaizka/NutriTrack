@@ -749,6 +749,147 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   });
 }
 
+// ─── GYM PARTNER: helper ─────────────────────────────────────────────────────
+async function getAcceptedPartnership(userId) {
+  const { data } = await supabase
+    .from('gym_partnerships')
+    .select('*')
+    .or(`inviter_id.eq.${userId},partner_id.eq.${userId}`)
+    .eq('status', 'accepted')
+    .maybeSingle();
+  return data;
+}
+
+// ─── GYM PARTNER: POST /api/gym/partner/invite ───────────────────────────────
+app.post('/api/gym/partner/invite', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const existing = await getAcceptedPartnership(user.id);
+  if (existing) return res.status(400).json({ error: 'Ya tienes un compañero vinculado.' });
+
+  // Borrar invitaciones pendientes previas del usuario
+  await supabase.from('gym_partnerships').delete().eq('inviter_id', user.id).eq('status', 'pending');
+
+  const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+  const { data, error } = await supabase
+    .from('gym_partnerships')
+    .insert({ inviter_id: user.id, invite_code: code })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: 'Error al generar el código.' });
+  return res.json({ code: data.invite_code });
+});
+
+// ─── GYM PARTNER: POST /api/gym/partner/join ─────────────────────────────────
+app.post('/api/gym/partner/join', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { code } = req.body;
+  if (!code) return res.status(400).json({ error: 'Código requerido.' });
+
+  const existing = await getAcceptedPartnership(user.id);
+  if (existing) return res.status(400).json({ error: 'Ya tienes un compañero vinculado.' });
+
+  const { data: partnership } = await supabase
+    .from('gym_partnerships')
+    .select('*')
+    .eq('invite_code', code.toUpperCase())
+    .eq('status', 'pending')
+    .maybeSingle();
+
+  if (!partnership) return res.status(404).json({ error: 'Código no válido o ya usado.' });
+  if (partnership.inviter_id === user.id) return res.status(400).json({ error: 'No puedes vincularte contigo mismo.' });
+
+  const { error } = await supabase
+    .from('gym_partnerships')
+    .update({ partner_id: user.id, status: 'accepted' })
+    .eq('id', partnership.id);
+
+  if (error) return res.status(500).json({ error: 'Error al aceptar la invitación.' });
+  return res.json({ ok: true });
+});
+
+// ─── GYM PARTNER: GET /api/gym/partner ───────────────────────────────────────
+app.get('/api/gym/partner', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const partnership = await getAcceptedPartnership(user.id);
+  if (!partnership) return res.json({ partner: null });
+
+  const partnerId = partnership.inviter_id === user.id
+    ? partnership.partner_id
+    : partnership.inviter_id;
+
+  // Perfil del compañero
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('nickname')
+    .eq('user_id', partnerId)
+    .maybeSingle();
+
+  // Ejercicios del compañero
+  const { data: exercises } = await supabase
+    .from('gym_exercises')
+    .select('id, name, muscle_group')
+    .eq('user_id', partnerId)
+    .order('muscle_group').order('name');
+
+  // Series del compañero (para calcular PRs)
+  const { data: partnerSets } = await supabase
+    .from('gym_sets')
+    .select('exercise_id, weight, reps')
+    .eq('user_id', partnerId);
+
+  // PR por ejercicio del compañero
+  const partnerPRs = {};
+  (partnerSets || []).forEach(s => {
+    const rm = Math.round(s.weight * (1 + s.reps / 30) * 10) / 10;
+    if (!partnerPRs[s.exercise_id] || rm > partnerPRs[s.exercise_id]) partnerPRs[s.exercise_id] = rm;
+  });
+
+  // Reto semanal: volumen total (peso × reps) desde el lunes
+  const now  = new Date();
+  const day  = now.getDay();
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  const weekStart = monday.toISOString().slice(0, 10);
+
+  const [{ data: mySets }, { data: theirSets }] = await Promise.all([
+    supabase.from('gym_sets').select('weight, reps').eq('user_id', user.id).gte('date', weekStart),
+    supabase.from('gym_sets').select('weight, reps').eq('user_id', partnerId).gte('date', weekStart),
+  ]);
+
+  const myVolume    = Math.round((mySets    || []).reduce((s, r) => s + r.weight * r.reps, 0));
+  const theirVolume = Math.round((theirSets || []).reduce((s, r) => s + r.weight * r.reps, 0));
+
+  return res.json({
+    partner: {
+      id:            partnerId,
+      nickname:      profile?.nickname || 'Compañero',
+      exercises:     (exercises || []).map(e => ({ ...e, pr: partnerPRs[e.id] || null })),
+      weeklyVolume:  theirVolume,
+    },
+    myWeeklyVolume: myVolume,
+  });
+});
+
+// ─── GYM PARTNER: DELETE /api/gym/partner ────────────────────────────────────
+app.delete('/api/gym/partner', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  await supabase
+    .from('gym_partnerships')
+    .delete()
+    .or(`inviter_id.eq.${user.id},partner_id.eq.${user.id}`);
+
+  return res.json({ ok: true });
+});
+
 // ─── GYM: GET /api/gym/exercises ─────────────────────────────────────────────
 app.get('/api/gym/exercises', async (req, res) => {
   const user = await getUserFromToken(req);

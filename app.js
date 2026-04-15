@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Primero cargar el perfil para tener GOALS actualizados antes de pintar
   await loadProfile();
-  await Promise.all([loadData(), loadEntriesToday(), loadWeight(), loadGroups(), loadGymExercises()]);
+  await Promise.all([loadData(), loadEntriesToday(), loadWeight(), loadGroups(), loadGymExercises(), loadGymPartner()]);
   initChat();
   initInvite();
   initWeightForm();
@@ -103,6 +103,7 @@ function initNavigation() {
       }
       if (contentId === 'tab-gym') {
         Object.values(gymCharts).forEach(c => setTimeout(() => c.resize(), 50));
+        loadGymPartner();
       }
     });
   });
@@ -1146,6 +1147,13 @@ function initGym() {
     if (e.key === 'Enter') addGymExercise();
   });
 
+  $('gym-join-close').addEventListener('click', closeJoinModal);
+  $('gym-join-backdrop').addEventListener('click', closeJoinModal);
+  $('gym-join-save').addEventListener('click', joinPartner);
+  $('gym-join-code').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') joinPartner();
+  });
+
   document.querySelectorAll('.gym-muscle-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       gymSelectedMuscle = btn.dataset.muscle;
@@ -1528,5 +1536,225 @@ async function deleteGymSet(setId, exerciseId) {
     await loadAndRenderGymChart(exerciseId);
   } catch (err) {
     console.error('[NutriTrack] DELETE /api/gym/sets/:id error:', err);
+  }
+}
+
+// ─── GYM COMPAÑERO ────────────────────────────────────────────────────────────
+
+let gymPartnerData = null;
+
+async function loadGymPartner() {
+  try {
+    const res = await fetch(`${API_URL}/api/gym/partner`, { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    gymPartnerData = await res.json();
+    renderGymPartner(gymPartnerData);
+  } catch (err) {
+    console.error('[NutriTrack] GET /api/gym/partner error:', err);
+  }
+}
+
+function renderGymPartner({ partner, myWeeklyVolume } = {}) {
+  const el = $('gym-partner-section');
+  if (!el) return;
+
+  if (!partner) {
+    el.innerHTML = `
+      <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4">
+        <p class="text-xs text-slate-400 uppercase tracking-widest font-medium mb-3">Compañero de gym</p>
+        <p class="text-xs text-slate-500 mb-4">Vincula a un compañero para comparar vuestro progreso y competir cada semana.</p>
+        <div class="flex gap-2">
+          <button onclick="invitePartner()"
+            class="flex-1 bg-violet-500/15 hover:bg-violet-500/25 active:scale-95 text-violet-400
+                   rounded-xl py-2.5 text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" x2="12" y1="2" y2="15"/>
+            </svg>
+            Generar código
+          </button>
+          <button onclick="openJoinModal()"
+            class="flex-1 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300
+                   rounded-xl py-2.5 text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
+            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>
+            </svg>
+            Unirse con código
+          </button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
+  const myVol    = myWeeklyVolume || 0;
+  const theirVol = partner.weeklyVolume || 0;
+  const total    = myVol + theirVol || 1;
+  const myPct    = Math.round((myVol / total) * 100);
+  const theirPct = 100 - myPct;
+  const winning  = myVol > theirVol ? 'winning' : myVol < theirVol ? 'losing' : 'tied';
+  const challengeMsg = winning === 'winning'
+    ? `¡Vas ganando! ${myVol.toLocaleString('es-ES')} vs ${theirVol.toLocaleString('es-ES')} kg·reps`
+    : winning === 'losing'
+    ? `¡${escapeHtml(partner.nickname)} va por delante! ${theirVol.toLocaleString('es-ES')} vs ${myVol.toLocaleString('es-ES')} kg·reps`
+    : 'Igualados esta semana';
+  const msgColor = winning === 'winning' ? 'text-emerald-400' : winning === 'losing' ? 'text-rose-400' : 'text-slate-400';
+
+  const muscleColors = {
+    'Pecho':'bg-blue-500/15 text-blue-400','Hombro':'bg-purple-500/15 text-purple-400',
+    'Tríceps':'bg-orange-500/15 text-orange-400','Espalda':'bg-emerald-500/15 text-emerald-400',
+    'Bíceps':'bg-rose-500/15 text-rose-400','Pierna':'bg-amber-500/15 text-amber-400',
+  };
+
+  const exercisesHtml = partner.exercises.length > 0
+    ? partner.exercises.map(e => `
+        <div class="flex items-center justify-between py-2 border-b border-slate-800 last:border-0">
+          <div class="flex items-center gap-2 min-w-0">
+            <span class="text-sm text-slate-300 truncate">${escapeHtml(e.name)}</span>
+            <span class="shrink-0 text-xs px-1.5 py-0.5 rounded-full ${muscleColors[e.muscle_group] || 'bg-slate-700 text-slate-400'}">${e.muscle_group}</span>
+          </div>
+          ${e.pr ? `<span class="text-xs text-violet-400 shrink-0 ml-2">PR ${e.pr} kg</span>` : ''}
+        </div>
+      `).join('')
+    : '<p class="text-xs text-slate-600 py-2">Aún no tiene ejercicios.</p>';
+
+  el.innerHTML = `
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+      <!-- Header compañero -->
+      <div class="p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-full bg-violet-500/15 flex items-center justify-center shrink-0">
+            <svg class="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+            </svg>
+          </div>
+          <div>
+            <p class="text-sm font-semibold text-white">${escapeHtml(partner.nickname)}</p>
+            <p class="text-xs text-slate-500">Compañero de gym</p>
+          </div>
+        </div>
+        <button onclick="removePartner()"
+          class="text-xs text-slate-600 hover:text-rose-400 transition-colors px-2 py-1 rounded-lg hover:bg-rose-500/10">
+          Desvincular
+        </button>
+      </div>
+
+      <!-- Reto semanal -->
+      <div class="px-4 pb-4 border-b border-slate-800">
+        <p class="text-xs text-slate-500 uppercase tracking-widest mb-3">Reto semanal · Volumen total</p>
+        <div class="space-y-2 mb-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 w-16 shrink-0">Tú</span>
+            <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-emerald-500 rounded-full transition-all duration-700" style="width:${myPct}%"></div>
+            </div>
+            <span class="text-xs text-slate-400 w-20 text-right shrink-0">${myVol.toLocaleString('es-ES')} kg</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 w-16 shrink-0 truncate">${escapeHtml(partner.nickname)}</span>
+            <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+              <div class="h-full bg-violet-500 rounded-full transition-all duration-700" style="width:${theirPct}%"></div>
+            </div>
+            <span class="text-xs text-slate-400 w-20 text-right shrink-0">${theirVol.toLocaleString('es-ES')} kg</span>
+          </div>
+        </div>
+        <p class="text-xs font-medium ${msgColor}">${challengeMsg}</p>
+      </div>
+
+      <!-- Ejercicios del compañero -->
+      <div class="p-4">
+        <p class="text-xs text-slate-500 uppercase tracking-widest mb-2">Sus ejercicios</p>
+        ${exercisesHtml}
+      </div>
+    </div>
+  `;
+}
+
+async function invitePartner() {
+  const el = $('gym-partner-section');
+  try {
+    const res = await fetch(`${API_URL}/api/gym/partner/invite`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    const code = data.code;
+    const msg  = `Mi código de compañero en NutriTrack Gym: ${code}`;
+
+    if (navigator.share) {
+      navigator.share({ title: 'NutriTrack Gym', text: msg }).catch(() => {});
+    } else if (navigator.clipboard) {
+      await navigator.clipboard.writeText(code);
+      // Mostrar el código en el botón temporalmente
+      const btn = el.querySelector('button');
+      if (btn) { btn.textContent = `Código: ${code} (copiado)`; }
+    }
+  } catch (err) {
+    console.error('[NutriTrack] invite partner error:', err);
+    alert(err.message || 'Error al generar el código.');
+  }
+}
+
+function openJoinModal() {
+  $('gym-join-code').value = '';
+  $('gym-join-error').classList.add('hidden');
+  $('gym-join-modal').classList.remove('hidden');
+  setTimeout(() => $('gym-join-code').focus(), 100);
+}
+
+function closeJoinModal() {
+  $('gym-join-modal').classList.add('hidden');
+}
+
+async function joinPartner() {
+  const code    = $('gym-join-code').value.trim().toUpperCase();
+  const errorEl = $('gym-join-error');
+
+  if (!code) {
+    errorEl.textContent = 'Introduce el código.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  const btn = $('gym-join-save');
+  btn.disabled = true;
+  btn.textContent = 'Vinculando…';
+
+  try {
+    const res = await fetch(`${API_URL}/api/gym/partner/join`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ code }),
+    });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    closeJoinModal();
+    await loadGymPartner();
+  } catch (err) {
+    errorEl.textContent = err.message || 'Error al vincularse.';
+    errorEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Vincularme';
+  }
+}
+
+async function removePartner() {
+  if (!confirm('¿Seguro que quieres desvincular a tu compañero?')) return;
+  try {
+    const res = await fetch(`${API_URL}/api/gym/partner`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (res.status === 401) { logout(); return; }
+    gymPartnerData = null;
+    renderGymPartner({});
+  } catch (err) {
+    console.error('[NutriTrack] DELETE /api/gym/partner error:', err);
   }
 }
