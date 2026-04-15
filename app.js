@@ -31,6 +31,13 @@ let macroChart   = null;
 let weeklyChart  = null;
 let weightChart  = null;
 
+// Estado gym
+let gymExercises     = [];
+let gymFilter        = 'all';
+let gymCharts        = {};
+let gymSetsCache     = {};
+let gymSelectedMuscle = null;
+
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 const $ = (id) => document.getElementById(id);
 
@@ -53,12 +60,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Primero cargar el perfil para tener GOALS actualizados antes de pintar
   await loadProfile();
-  await Promise.all([loadData(), loadEntriesToday(), loadWeight(), loadGroups()]);
+  await Promise.all([loadData(), loadEntriesToday(), loadWeight(), loadGroups(), loadGymExercises()]);
   initChat();
   initInvite();
   initWeightForm();
   initGroupsForms();
   initNotifToggle();
+  initGym();
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js').catch(console.error);
@@ -77,6 +85,7 @@ function initNavigation() {
     { navId: 'nav-today',  contentId: 'tab-today'  },
     { navId: 'nav-week',   contentId: 'tab-week'   },
     { navId: 'nav-groups', contentId: 'tab-groups' },
+    { navId: 'nav-gym',    contentId: 'tab-gym'    },
   ];
 
   TABS.forEach(({ navId, contentId }) => {
@@ -91,6 +100,9 @@ function initNavigation() {
       if (contentId === 'tab-week') {
         if (weeklyChart) setTimeout(() => weeklyChart.resize(), 50);
         if (weightChart) setTimeout(() => weightChart.resize(), 50);
+      }
+      if (contentId === 'tab-gym') {
+        Object.values(gymCharts).forEach(c => setTimeout(() => c.resize(), 50));
       }
     });
   });
@@ -1112,4 +1124,382 @@ function initCharts() {
       },
     },
   });
+}
+
+// ─── GYM ──────────────────────────────────────────────────────────────────────
+
+const MUSCLE_COLORS = {
+  'Pecho':   'bg-blue-500/15 text-blue-400',
+  'Hombro':  'bg-purple-500/15 text-purple-400',
+  'Tríceps': 'bg-orange-500/15 text-orange-400',
+  'Espalda': 'bg-emerald-500/15 text-emerald-400',
+  'Bíceps':  'bg-rose-500/15 text-rose-400',
+  'Pierna':  'bg-amber-500/15 text-amber-400',
+};
+
+function initGym() {
+  $('gym-add-btn').addEventListener('click', openGymModal);
+  $('gym-modal-close').addEventListener('click', closeGymModal);
+  $('gym-modal-backdrop').addEventListener('click', closeGymModal);
+  $('gym-modal-save').addEventListener('click', addGymExercise);
+  $('gym-exercise-name').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') addGymExercise();
+  });
+
+  document.querySelectorAll('.gym-muscle-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      gymSelectedMuscle = btn.dataset.muscle;
+      document.querySelectorAll('.gym-muscle-btn').forEach(b => {
+        b.className = b === btn
+          ? 'gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-emerald-500 text-white'
+          : 'gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-slate-800 text-slate-400 hover:bg-slate-700';
+      });
+    });
+  });
+
+  document.querySelectorAll('.gym-filter').forEach(btn => {
+    btn.addEventListener('click', () => {
+      gymFilter = btn.dataset.muscle;
+      document.querySelectorAll('.gym-filter').forEach(b => {
+        b.className = b === btn
+          ? 'gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-emerald-500 text-white'
+          : 'gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-slate-800 text-slate-400';
+      });
+      renderGymExercises();
+    });
+  });
+}
+
+function openGymModal() {
+  gymSelectedMuscle = null;
+  $('gym-exercise-name').value = '';
+  $('gym-modal-error').classList.add('hidden');
+  document.querySelectorAll('.gym-muscle-btn').forEach(b => {
+    b.className = 'gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-slate-800 text-slate-400 hover:bg-slate-700';
+  });
+  $('gym-modal').classList.remove('hidden');
+  setTimeout(() => $('gym-exercise-name').focus(), 100);
+}
+
+function closeGymModal() {
+  $('gym-modal').classList.add('hidden');
+}
+
+async function addGymExercise() {
+  const name    = $('gym-exercise-name').value.trim();
+  const errorEl = $('gym-modal-error');
+
+  if (!name) {
+    errorEl.textContent = 'El nombre es obligatorio.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+  if (!gymSelectedMuscle) {
+    errorEl.textContent = 'Selecciona un músculo.';
+    errorEl.classList.remove('hidden');
+    return;
+  }
+
+  const btn = $('gym-modal-save');
+  btn.disabled = true;
+  btn.textContent = 'Guardando…';
+
+  try {
+    const res = await fetch(`${API_URL}/api/gym/exercises`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ name, muscle_group: gymSelectedMuscle }),
+    });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    closeGymModal();
+    await loadGymExercises();
+  } catch (err) {
+    errorEl.textContent = err.message || 'Error al crear el ejercicio.';
+    errorEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Añadir ejercicio';
+  }
+}
+
+async function loadGymExercises() {
+  try {
+    const res = await fetch(`${API_URL}/api/gym/exercises`, { headers: authHeaders() });
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    gymExercises = await res.json();
+    renderGymExercises();
+  } catch (err) {
+    console.error('[NutriTrack] GET /api/gym/exercises error:', err);
+  }
+}
+
+function renderGymExercises() {
+  const list    = $('gym-exercises-list');
+  const empty   = $('gym-empty');
+  const filtered = gymFilter === 'all'
+    ? gymExercises
+    : gymExercises.filter(e => e.muscle_group === gymFilter);
+
+  if (filtered.length === 0) {
+    list.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+
+  empty.classList.add('hidden');
+  list.innerHTML = filtered.map(gymExerciseCard).join('');
+
+  // Restaurar gráficos ya cargados
+  filtered.forEach(ex => {
+    if (gymSetsCache[ex.id]) {
+      const section = $(`gym-chart-section-${ex.id}`);
+      if (section && !section.classList.contains('hidden')) {
+        renderGymChart(ex.id, gymSetsCache[ex.id]);
+      }
+    }
+  });
+}
+
+function gymExerciseCard(ex) {
+  const badge = MUSCLE_COLORS[ex.muscle_group] || 'bg-slate-700 text-slate-300';
+  return `
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden fade-up">
+      <div class="p-4 flex items-center justify-between">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="text-sm font-semibold text-white truncate">${escapeHtml(ex.name)}</span>
+          <span class="shrink-0 text-xs px-2 py-0.5 rounded-full ${badge}">${ex.muscle_group}</span>
+        </div>
+        <button onclick="deleteGymExercise('${ex.id}')"
+          class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400
+                 flex items-center justify-center transition-all shrink-0 ml-2" title="Eliminar">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
+            <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="px-4 pb-4 flex gap-2">
+        <div class="relative flex-1">
+          <input id="gym-weight-${ex.id}" type="number" inputmode="decimal" placeholder="Peso" min="0" step="0.5"
+            class="w-full bg-slate-800 rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder-slate-600
+                   border border-slate-700 focus:outline-none focus:border-emerald-500/70 transition-all"/>
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">kg</span>
+        </div>
+        <div class="relative" style="width:76px">
+          <input id="gym-reps-${ex.id}" type="number" inputmode="numeric" placeholder="Reps" min="1" step="1"
+            class="w-full bg-slate-800 rounded-xl px-3 py-2.5 pr-7 text-sm text-white placeholder-slate-600
+                   border border-slate-700 focus:outline-none focus:border-emerald-500/70 transition-all"/>
+          <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">×</span>
+        </div>
+        <button onclick="logGymSet('${ex.id}')"
+          class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white rounded-xl px-3 py-2.5
+                 font-semibold text-sm transition-all shrink-0 flex items-center justify-center" title="Registrar serie">
+          <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/>
+          </svg>
+        </button>
+      </div>
+
+      <button id="gym-toggle-${ex.id}" onclick="toggleGymChart('${ex.id}')"
+        class="w-full py-2.5 text-xs text-slate-500 border-t border-slate-800 flex items-center justify-center gap-1.5 hover:text-slate-300 transition-colors">
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+        Ver progreso
+      </button>
+
+      <div id="gym-chart-section-${ex.id}" class="hidden border-t border-slate-800 p-4">
+        <div id="gym-chart-wrapper-${ex.id}" class="relative h-36 mb-3">
+          <canvas id="gym-chart-${ex.id}"></canvas>
+        </div>
+        <div id="gym-sets-today-${ex.id}"></div>
+      </div>
+    </div>
+  `;
+}
+
+async function deleteGymExercise(id) {
+  try {
+    const res = await fetch(`${API_URL}/api/gym/exercises/${id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    if (gymCharts[id]) { gymCharts[id].destroy(); delete gymCharts[id]; }
+    delete gymSetsCache[id];
+    gymExercises = gymExercises.filter(e => e.id !== id);
+    renderGymExercises();
+  } catch (err) {
+    console.error('[NutriTrack] DELETE /api/gym/exercises/:id error:', err);
+  }
+}
+
+async function logGymSet(exerciseId) {
+  const weightInput = $(`gym-weight-${exerciseId}`);
+  const repsInput   = $(`gym-reps-${exerciseId}`);
+  const weight = parseFloat(weightInput.value);
+  const reps   = parseInt(repsInput.value, 10);
+
+  if (isNaN(weight) || weight <= 0) { weightInput.focus(); return; }
+  if (isNaN(reps)   || reps <= 0)   { repsInput.focus();   return; }
+
+  try {
+    const res = await fetch(`${API_URL}/api/gym/sets`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ exercise_id: exerciseId, weight, reps }),
+    });
+    if (res.status === 401) { logout(); return; }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
+
+    weightInput.value = '';
+    repsInput.value   = '';
+
+    // Refrescar gráfico si está abierto
+    delete gymSetsCache[exerciseId];
+    if (gymCharts[exerciseId]) { gymCharts[exerciseId].destroy(); delete gymCharts[exerciseId]; }
+    const section = $(`gym-chart-section-${exerciseId}`);
+    if (section && !section.classList.contains('hidden')) {
+      await loadAndRenderGymChart(exerciseId);
+    }
+  } catch (err) {
+    console.error('[NutriTrack] POST /api/gym/sets error:', err);
+  }
+}
+
+async function toggleGymChart(exerciseId) {
+  const section = $(`gym-chart-section-${exerciseId}`);
+  const toggle  = $(`gym-toggle-${exerciseId}`);
+  const icon = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`;
+
+  if (section.classList.contains('hidden')) {
+    section.classList.remove('hidden');
+    toggle.innerHTML = `${icon} Ocultar progreso`;
+    await loadAndRenderGymChart(exerciseId);
+  } else {
+    section.classList.add('hidden');
+    toggle.innerHTML = `${icon} Ver progreso`;
+  }
+}
+
+async function loadAndRenderGymChart(exerciseId) {
+  if (!gymSetsCache[exerciseId]) {
+    try {
+      const res = await fetch(`${API_URL}/api/gym/sets/${exerciseId}`, { headers: authHeaders() });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      gymSetsCache[exerciseId] = await res.json();
+    } catch (err) {
+      console.error('[NutriTrack] GET /api/gym/sets error:', err);
+      return;
+    }
+  }
+  renderGymChart(exerciseId, gymSetsCache[exerciseId]);
+}
+
+function renderGymChart(exerciseId, sets) {
+  const canvas = $(`gym-chart-${exerciseId}`);
+  if (!canvas) return;
+
+  // Series de hoy
+  const today     = new Date().toISOString().slice(0, 10);
+  const todaySets = sets.filter(s => s.date === today);
+  const todayEl   = $(`gym-sets-today-${exerciseId}`);
+  if (todayEl) {
+    todayEl.innerHTML = todaySets.length > 0 ? `
+      <p class="text-xs text-slate-500 uppercase tracking-widest mb-2 mt-1">Hoy</p>
+      ${todaySets.map(s => `
+        <div class="flex items-center justify-between py-1.5 border-b border-slate-800 last:border-0">
+          <span class="text-sm text-slate-300">${s.weight} kg × ${s.reps} reps</span>
+          <button onclick="deleteGymSet('${s.id}','${exerciseId}')"
+            class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all text-slate-500">
+            <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+              <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
+            </svg>
+          </button>
+        </div>
+      `).join('')}
+    ` : '<p class="text-xs text-slate-600 text-center py-2">Sin series hoy</p>';
+  }
+
+  // Máximo peso por fecha para el gráfico
+  const byDate = {};
+  sets.forEach(s => {
+    if (!byDate[s.date] || s.weight > byDate[s.date]) byDate[s.date] = s.weight;
+  });
+  const dates  = Object.keys(byDate).sort();
+  const labels = dates.map(d => new Date(d + 'T00:00:00').toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' }));
+  const values = dates.map(d => byDate[d]);
+  const wrapper = $(`gym-chart-wrapper-${exerciseId}`);
+
+  if (dates.length === 0) {
+    if (wrapper) wrapper.classList.add('hidden');
+    return;
+  }
+  if (wrapper) wrapper.classList.remove('hidden');
+
+  if (gymCharts[exerciseId]) {
+    gymCharts[exerciseId].data.labels           = labels;
+    gymCharts[exerciseId].data.datasets[0].data = values;
+    gymCharts[exerciseId].update('active');
+  } else {
+    gymCharts[exerciseId] = new Chart(canvas.getContext('2d'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data:                 values,
+          borderColor:          '#a78bfa',
+          backgroundColor:      'rgba(167,139,250,0.08)',
+          borderWidth:          2,
+          pointRadius:          4,
+          pointBackgroundColor: '#a78bfa',
+          tension:              0.3,
+          fill:                 true,
+        }],
+      },
+      options: {
+        responsive:          true,
+        maintainAspectRatio: false,
+        animation:           { duration: 500 },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: '#1e293b',
+            borderColor:     '#334155',
+            borderWidth:     1,
+            padding:         10,
+            callbacks: { label: (ctx) => ` ${ctx.raw} kg` },
+          },
+        },
+        scales: {
+          x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 6 } },
+          y: { grid: { color: '#1e293b' }, border: { display: false }, ticks: { font: { size: 10 }, callback: (v) => `${v}kg` } },
+        },
+      },
+    });
+  }
+}
+
+async function deleteGymSet(setId, exerciseId) {
+  try {
+    const res = await fetch(`${API_URL}/api/gym/sets/${setId}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    });
+    if (res.status === 401) { logout(); return; }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    delete gymSetsCache[exerciseId];
+    if (gymCharts[exerciseId]) { gymCharts[exerciseId].destroy(); delete gymCharts[exerciseId]; }
+    await loadAndRenderGymChart(exerciseId);
+  } catch (err) {
+    console.error('[NutriTrack] DELETE /api/gym/sets/:id error:', err);
+  }
 }

@@ -749,6 +749,121 @@ if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
   });
 }
 
+// ─── GYM: GET /api/gym/exercises ─────────────────────────────────────────────
+app.get('/api/gym/exercises', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { data, error } = await supabase
+    .from('gym_exercises')
+    .select('id, name, muscle_group')
+    .eq('user_id', user.id)
+    .order('muscle_group')
+    .order('name');
+
+  if (error) return res.status(500).json({ error: 'Error al obtener ejercicios.' });
+  return res.json(data || []);
+});
+
+// ─── GYM: POST /api/gym/exercises ────────────────────────────────────────────
+app.post('/api/gym/exercises', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const MUSCLES = ['Pecho', 'Hombro', 'Tríceps', 'Espalda', 'Bíceps', 'Pierna'];
+  const { name, muscle_group } = req.body;
+  if (!name || !name.trim()) return res.status(400).json({ error: 'El nombre es obligatorio.' });
+  if (!MUSCLES.includes(muscle_group)) return res.status(400).json({ error: 'Músculo no válido.' });
+
+  const { data, error } = await supabase
+    .from('gym_exercises')
+    .insert({ user_id: user.id, name: name.trim(), muscle_group })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: 'Error al crear el ejercicio.' });
+  return res.json(data);
+});
+
+// ─── GYM: DELETE /api/gym/exercises/:id ──────────────────────────────────────
+app.delete('/api/gym/exercises/:id', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { error } = await supabase
+    .from('gym_exercises')
+    .delete()
+    .eq('id', req.params.id)
+    .eq('user_id', user.id);
+
+  if (error) return res.status(500).json({ error: 'Error al eliminar el ejercicio.' });
+  return res.status(204).send();
+});
+
+// ─── GYM: POST /api/gym/sets ─────────────────────────────────────────────────
+app.post('/api/gym/sets', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { exercise_id, weight, reps } = req.body;
+  const weightNum = parseFloat(weight);
+  const repsNum   = parseInt(reps, 10);
+
+  if (!exercise_id) return res.status(400).json({ error: 'exercise_id requerido.' });
+  if (isNaN(weightNum) || weightNum <= 0) return res.status(400).json({ error: 'Peso no válido.' });
+  if (isNaN(repsNum)   || repsNum <= 0)   return res.status(400).json({ error: 'Repeticiones no válidas.' });
+
+  const { data: ex } = await supabase
+    .from('gym_exercises')
+    .select('id')
+    .eq('id', exercise_id)
+    .eq('user_id', user.id)
+    .maybeSingle();
+  if (!ex) return res.status(403).json({ error: 'Ejercicio no encontrado.' });
+
+  const today = new Date().toISOString().slice(0, 10);
+  const { data, error } = await supabase
+    .from('gym_sets')
+    .insert({ user_id: user.id, exercise_id, weight: weightNum, reps: repsNum, date: today })
+    .select()
+    .single();
+
+  if (error) return res.status(500).json({ error: 'Error al guardar la serie.' });
+  return res.json(data);
+});
+
+// ─── GYM: GET /api/gym/sets/:exerciseId ──────────────────────────────────────
+app.get('/api/gym/sets/:exerciseId', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { data, error } = await supabase
+    .from('gym_sets')
+    .select('id, weight, reps, date')
+    .eq('exercise_id', req.params.exerciseId)
+    .eq('user_id', user.id)
+    .order('date', { ascending: true })
+    .order('created_at', { ascending: true });
+
+  if (error) return res.status(500).json({ error: 'Error al obtener series.' });
+  return res.json(data || []);
+});
+
+// ─── GYM: DELETE /api/gym/sets/:id ───────────────────────────────────────────
+app.delete('/api/gym/sets/:id', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { error } = await supabase
+    .from('gym_sets')
+    .delete()
+    .eq('id', req.params.id)
+    .eq('user_id', user.id);
+
+  if (error) return res.status(500).json({ error: 'Error al eliminar la serie.' });
+  return res.status(204).send();
+});
+
 // ─── HEALTHCHECK ──────────────────────────────────────────────────────────────
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
