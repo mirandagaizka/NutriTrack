@@ -257,7 +257,7 @@ async function handleSubmit() {
     await Promise.all([loadData(), loadEntriesToday()]);
   } catch (err) {
     setLoading(false);
-    showStatus('Error al registrar el alimento. Inténtalo de nuevo.', 'error');
+    showStatus(err.message || 'Error al registrar el alimento. Inténtalo de nuevo.', 'error');
     console.error('[NutriTrack] POST /api/food error:', err);
   }
 }

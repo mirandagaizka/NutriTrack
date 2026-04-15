@@ -192,6 +192,11 @@ app.post('/api/food', async (req, res) => {
         }
       );
 
+      if (geminiRes.status === 429) {
+        console.error('[NutriTrack] Gemini: cuota agotada (429). No se reintenta.');
+        return res.status(503).json({ error: 'Cuota de IA agotada. Vuelve a intentarlo mañana.' });
+      }
+
       if (!geminiRes.ok) {
         throw new Error(`Gemini HTTP ${geminiRes.status}`);
       }
