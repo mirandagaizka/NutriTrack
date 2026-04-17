@@ -1,5 +1,5 @@
 // ─── NutriTrack Service Worker ────────────────────────────────────────────────
-const CACHE_NAME = 'nutritrack-v7';
+const CACHE_NAME = 'nutritrack-v8';
 const APP_SHELL = [
   './',
   './index.html',
