@@ -1008,6 +1008,14 @@ app.delete('/api/gym/sets/:id', async (req, res) => {
 // ─── HEALTHCHECK ──────────────────────────────────────────────────────────────
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
+// ─── KEEPALIVE (evita que Render duerma el servicio en el free tier) ──────────
+const SELF_URL = process.env.RENDER_EXTERNAL_URL;
+if (SELF_URL) {
+  setInterval(() => {
+    fetch(`${SELF_URL}/health`).catch(() => {});
+  }, 10 * 60 * 1000); // cada 10 minutos
+}
+
 // ─── ARRANQUE ─────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
   console.log(`[NutriTrack] Servidor escuchando en puerto ${PORT}`);
