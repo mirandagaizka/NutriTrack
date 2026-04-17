@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 
   <!-- PWA Meta -->
-  <meta name="theme-color" content="#020617" />
+  <meta name="theme-color" content="#0a0a0a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="NutriTrack" />
@@ -21,7 +21,7 @@
       theme: {
         extend: {
           colors: {
-            brand: { DEFAULT: '#10b981', light: '#34d399', dark: '#059669' },
+            brand: { DEFAULT: '#6366f1', light: '#818cf8', dark: '#4f46e5' },
           },
           fontFamily: {
             sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
@@ -55,8 +55,8 @@
 
     /* Fade-in de cards */
     @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(12px); }
-      to   { opacity: 1; transform: translateY(0); }
+      from { opacity: 0; transform: tranneutralY(12px); }
+      to   { opacity: 1; transform: tranneutralY(0); }
     }
     .fade-up { animation: fadeUp 0.4s ease both; }
 
@@ -65,15 +65,15 @@
     main { -ms-overflow-style: none; scrollbar-width: none; }
 
     /* Nav activo */
-    [data-active="true"] .nav-icon { color: #10b981; }
-    [data-active="true"] .nav-label { color: #10b981; font-weight: 600; }
+    [data-active="true"] .nav-icon { color: #6366f1; }
+    [data-active="true"] .nav-label { color: #6366f1; font-weight: 600; }
     [data-active="false"] .nav-icon { color: #475569; }
     [data-active="false"] .nav-label { color: #475569; font-weight: 500; }
 
     /* Typing dots */
     @keyframes typingBounce {
-      0%, 60%, 100% { transform: translateY(0); }
-      30%            { transform: translateY(-5px); }
+      0%, 60%, 100% { transform: tranneutralY(0); }
+      30%            { transform: tranneutralY(-5px); }
     }
     .typing-dot { animation: typingBounce 1.2s infinite; }
     .typing-dot:nth-child(2) { animation-delay: 0.2s; }
@@ -85,7 +85,7 @@
   </style>
 </head>
 
-<body class="bg-slate-950 text-white min-h-screen font-sans antialiased">
+<body class="bg-neutral-950 text-white min-h-screen font-sans antialiased">
 
   <!-- ═══════════════════════════════════════════════════════════
        CONTENEDOR PRINCIPAL (max-width centrado en tablet+)
@@ -98,28 +98,28 @@
         <div class="flex items-center gap-2">
           <!-- Logo SVG inline -->
           <svg class="w-7 h-7" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <rect width="32" height="32" rx="8" fill="#10b981" fill-opacity="0.15"/>
-            <path d="M16 6C11 9 9 13 10 18C11 23 14 25 16 25.5C18 25 21 23 22 18C23 13 21 9 16 6Z" fill="#10b981"/>
-            <path d="M16 25.5V11" stroke="#020617" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+            <rect width="32" height="32" rx="8" fill="#6366f1" fill-opacity="0.15"/>
+            <path d="M16 6C11 9 9 13 10 18C11 23 14 25 16 25.5C18 25 21 23 22 18C23 13 21 9 16 6Z" fill="#6366f1"/>
+            <path d="M16 25.5V11" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
           </svg>
           <h1 class="text-xl font-bold tracking-tight text-white">NutriTrack</h1>
         </div>
-        <p id="current-date" class="text-xs text-slate-500 mt-0.5 ml-0.5 capitalize"></p>
+        <p id="current-date" class="text-xs text-neutral-500 mt-0.5 ml-0.5 capitalize"></p>
       </div>
 
       <!-- Objetivo calórico + acciones -->
       <div class="flex items-center gap-3">
         <div class="text-right">
-          <p class="text-xs text-slate-500">Objetivo</p>
-          <p id="header-goal" class="text-sm font-semibold text-slate-300">— kcal</p>
+          <p class="text-xs text-neutral-500">Objetivo</p>
+          <p id="header-goal" class="text-sm font-semibold text-neutral-300">— kcal</p>
         </div>
         <!-- Botón invitar (solo admin) -->
         <button
           id="invite-btn"
           title="Invitar persona"
-          class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 items-center justify-center transition-all hidden"
+          class="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:scale-95 items-center justify-center transition-all hidden"
         >
-          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-4 h-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
             <circle cx="9" cy="7" r="4"/>
             <line x1="19" x2="19" y1="8" y2="14"/>
@@ -130,9 +130,9 @@
         <button
           id="settings-btn"
           title="Ajustes"
-          class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center transition-all"
+          class="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:scale-95 flex items-center justify-center transition-all"
         >
-          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-4 h-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
             <circle cx="12" cy="12" r="3"/>
           </svg>
@@ -141,9 +141,9 @@
         <button
           onclick="logout()"
           title="Cerrar sesión"
-          class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center transition-all"
+          class="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:scale-95 flex items-center justify-center transition-all"
         >
-          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-4 h-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
             <polyline points="16 17 21 12 16 7"/>
             <line x1="21" x2="9" y1="12" y2="12"/>
@@ -161,8 +161,8 @@
       <div id="tab-today">
 
         <!-- ── Formulario de registro ── -->
-        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up">
-          <p class="text-xs text-slate-400 uppercase tracking-widest mb-3 font-medium">Registrar alimento</p>
+        <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 fade-up">
+          <p class="text-xs text-neutral-400 uppercase tracking-widest mb-3 font-medium">Registrar alimento</p>
           <div class="flex gap-2">
             <input
               id="food-input"
@@ -170,14 +170,14 @@
               inputmode="text"
               autocomplete="off"
               placeholder="Ej: 150g de pechuga a la plancha"
-              class="flex-1 bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
-                     border border-slate-700 focus:outline-none focus:border-emerald-500/70
-                     focus:ring-1 focus:ring-emerald-500/30 transition-all"
+              class="flex-1 bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600
+                     border border-neutral-700 focus:outline-none focus:border-indigo-500/70
+                     focus:ring-1 focus:ring-indigo-500/30 transition-all"
             />
             <button
               id="add-btn"
-              class="bg-emerald-500 hover:bg-emerald-400 active:scale-95
-                     disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed
+              class="bg-indigo-500 hover:bg-indigo-400 active:scale-95
+                     disabled:bg-neutral-800 disabled:text-neutral-600 disabled:cursor-not-allowed
                      text-white rounded-xl px-4 py-3 font-semibold text-sm
                      transition-all duration-150 flex items-center gap-1.5 shrink-0"
             >
@@ -198,13 +198,13 @@
         </div>
 
         <!-- ── Lista de alimentos de hoy ── -->
-        <div id="entries-card" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up hidden" style="animation-delay:0.05s">
-          <p class="text-xs text-slate-400 uppercase tracking-widest mb-3 font-medium">Alimentos de hoy</p>
+        <div id="entries-card" class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 fade-up hidden" style="animation-delay:0.05s">
+          <p class="text-xs text-neutral-400 uppercase tracking-widest mb-3 font-medium">Alimentos de hoy</p>
           <ul id="entries-list" class="space-y-2"></ul>
         </div>
 
         <!-- ── Racha ── -->
-        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.08s">
+        <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 fade-up" style="animation-delay:0.08s">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-7 h-7 rounded-lg bg-orange-500/10 flex items-center justify-center">
@@ -212,47 +212,47 @@
                   <path fill-rule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clip-rule="evenodd"/>
                 </svg>
               </div>
-              <span class="text-sm font-medium text-slate-200">Racha</span>
+              <span class="text-sm font-medium text-neutral-200">Racha</span>
             </div>
             <div class="flex items-baseline gap-1">
               <span id="streak-value" class="text-2xl font-bold text-white">0</span>
-              <span class="text-sm text-slate-500">días</span>
+              <span class="text-sm text-neutral-500">días</span>
             </div>
           </div>
-          <p id="streak-label" class="text-xs text-slate-500 mt-1.5 ml-9">Registra alimentos para empezar tu racha</p>
+          <p id="streak-label" class="text-xs text-neutral-500 mt-1.5 ml-9">Registra alimentos para empezar tu racha</p>
         </div>
 
         <!-- ── Progreso de calorías ── -->
-        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.1s">
+        <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 fade-up" style="animation-delay:0.1s">
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2">
               <!-- Ícono llama -->
-              <div class="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 20 20" fill="currentColor">
+              <div class="w-7 h-7 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
                   <path fill-rule="evenodd" d="M13.5 4.938a7 7 0 11-7.627 7.96 6.5 6.5 0 013.5-7.06c.244-.143.488-.278.755-.383a.75.75 0 01.972.992 5 5 0 00-.755 3.076.75.75 0 001.02.688 5.002 5.002 0 002.135-8.273z" clip-rule="evenodd"/>
                 </svg>
               </div>
-              <span class="text-sm font-medium text-slate-200">Calorías</span>
+              <span class="text-sm font-medium text-neutral-200">Calorías</span>
             </div>
-            <span id="cal-pct" class="text-sm font-semibold text-emerald-400">0%</span>
+            <span id="cal-pct" class="text-sm font-semibold text-indigo-400">0%</span>
           </div>
 
           <div class="flex items-baseline gap-1 mb-3 ml-9">
             <span id="cal-current" class="text-3xl font-bold text-white">0</span>
-            <span class="text-sm text-slate-500">/ <span id="cal-goal-label">—</span> kcal</span>
+            <span class="text-sm text-neutral-500">/ <span id="cal-goal-label">—</span> kcal</span>
           </div>
 
-          <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-2 bg-neutral-800 rounded-full overflow-hidden">
             <div
               id="cal-bar"
-              class="h-full rounded-full progress-bar-fill bg-gradient-to-r from-emerald-500 to-emerald-400"
+              class="h-full rounded-full progress-bar-fill bg-gradient-to-r from-indigo-500 to-violet-400"
               style="width: 0%"
             ></div>
           </div>
         </div>
 
         <!-- ── Progreso de proteínas ── -->
-        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.15s">
+        <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 fade-up" style="animation-delay:0.15s">
           <div class="flex items-center justify-between mb-1">
             <div class="flex items-center gap-2">
               <!-- Ícono proteína -->
@@ -261,17 +261,17 @@
                   <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z"/>
                 </svg>
               </div>
-              <span class="text-sm font-medium text-slate-200">Proteínas</span>
+              <span class="text-sm font-medium text-neutral-200">Proteínas</span>
             </div>
             <span id="prot-pct" class="text-sm font-semibold text-blue-400">0%</span>
           </div>
 
           <div class="flex items-baseline gap-1 mb-3 ml-9">
             <span id="prot-current" class="text-3xl font-bold text-white">0</span>
-            <span class="text-sm text-slate-500">/ <span id="prot-goal-label">—</span> g</span>
+            <span class="text-sm text-neutral-500">/ <span id="prot-goal-label">—</span> g</span>
           </div>
 
-          <div class="h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-2 bg-neutral-800 rounded-full overflow-hidden">
             <div
               id="prot-bar"
               class="h-full rounded-full progress-bar-fill bg-gradient-to-r from-blue-500 to-blue-400"
@@ -281,9 +281,9 @@
         </div>
 
         <!-- ── Gráfico Doughnut (distribución de macros) ── -->
-        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.2s">
+        <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 fade-up" style="animation-delay:0.2s">
           <div class="flex items-center justify-between mb-4">
-            <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Macros de hoy</p>
+            <p class="text-xs text-neutral-400 uppercase tracking-widest font-medium">Macros de hoy</p>
           </div>
 
           <!-- Doughnut con valor central -->
@@ -292,7 +292,7 @@
             <!-- Centro del donut -->
             <div class="relative z-10 flex flex-col items-center pointer-events-none">
               <span id="donut-center-val" class="text-2xl font-bold text-white leading-none">0</span>
-              <span class="text-xs text-slate-500 mt-0.5">kcal</span>
+              <span class="text-xs text-neutral-500 mt-0.5">kcal</span>
             </div>
           </div>
 
@@ -300,18 +300,18 @@
           <div class="flex justify-center gap-5 mt-4">
             <div class="flex items-center gap-1.5">
               <span class="w-2.5 h-2.5 rounded-full bg-blue-400 shrink-0"></span>
-              <span class="text-xs text-slate-400">Proteínas</span>
-              <span id="legend-prot" class="text-xs font-semibold text-slate-200">0g</span>
+              <span class="text-xs text-neutral-400">Proteínas</span>
+              <span id="legend-prot" class="text-xs font-semibold text-neutral-200">0g</span>
             </div>
             <div class="flex items-center gap-1.5">
               <span class="w-2.5 h-2.5 rounded-full bg-amber-400 shrink-0"></span>
-              <span class="text-xs text-slate-400">Carbos</span>
-              <span id="legend-carbs" class="text-xs font-semibold text-slate-200">0g</span>
+              <span class="text-xs text-neutral-400">Carbos</span>
+              <span id="legend-carbs" class="text-xs font-semibold text-neutral-200">0g</span>
             </div>
             <div class="flex items-center gap-1.5">
               <span class="w-2.5 h-2.5 rounded-full bg-rose-400 shrink-0"></span>
-              <span class="text-xs text-slate-400">Grasas</span>
-              <span id="legend-fats" class="text-xs font-semibold text-slate-200">0g</span>
+              <span class="text-xs text-neutral-400">Grasas</span>
+              <span id="legend-fats" class="text-xs font-semibold text-neutral-200">0g</span>
             </div>
           </div>
         </div>
@@ -324,8 +324,8 @@
       <div id="tab-week" class="hidden">
 
         <!-- ── Registro de peso ── -->
-        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up">
-          <p class="text-xs text-slate-400 uppercase tracking-widest mb-3 font-medium">Peso de hoy</p>
+        <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 fade-up">
+          <p class="text-xs text-neutral-400 uppercase tracking-widest mb-3 font-medium">Peso de hoy</p>
           <div class="flex gap-2">
             <div class="relative flex-1">
               <input
@@ -334,16 +334,16 @@
                 inputmode="decimal"
                 placeholder="70.5"
                 min="20" max="500" step="0.1"
-                class="w-full bg-slate-800 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-600
-                       border border-slate-700 focus:outline-none focus:border-emerald-500/70
-                       focus:ring-1 focus:ring-emerald-500/30 transition-all"
+                class="w-full bg-neutral-800 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-neutral-600
+                       border border-neutral-700 focus:outline-none focus:border-indigo-500/70
+                       focus:ring-1 focus:ring-indigo-500/30 transition-all"
               />
-              <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">kg</span>
+              <span class="absolute right-3 top-1/2 -tranneutral-y-1/2 text-xs text-neutral-500 pointer-events-none">kg</span>
             </div>
             <button
               id="weight-save-btn"
-              class="bg-emerald-500 hover:bg-emerald-400 active:scale-95
-                     disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed
+              class="bg-indigo-500 hover:bg-indigo-400 active:scale-95
+                     disabled:bg-neutral-800 disabled:text-neutral-600 disabled:cursor-not-allowed
                      text-white rounded-xl px-4 py-3 font-semibold text-sm transition-all shrink-0"
             >Guardar</button>
           </div>
@@ -352,54 +352,54 @@
 
         <!-- Stats rápidas -->
         <div class="grid grid-cols-2 gap-3 fade-up">
-          <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800">
-            <p class="text-xs text-slate-500 mb-1">Promedio semanal</p>
+          <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800">
+            <p class="text-xs text-neutral-500 mb-1">Promedio semanal</p>
             <p class="text-xl font-bold text-white">
               <span id="week-avg">—</span>
-              <span class="text-sm font-normal text-slate-500"> kcal</span>
+              <span class="text-sm font-normal text-neutral-500"> kcal</span>
             </p>
           </div>
-          <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800">
-            <p class="text-xs text-slate-500 mb-1">Mejor día</p>
+          <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800">
+            <p class="text-xs text-neutral-500 mb-1">Mejor día</p>
             <p class="text-xl font-bold text-white">
               <span id="week-max">—</span>
-              <span class="text-sm font-normal text-slate-500"> kcal</span>
+              <span class="text-sm font-normal text-neutral-500"> kcal</span>
             </p>
           </div>
         </div>
 
         <!-- Gráfico de barras semanal -->
-        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.05s">
+        <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 fade-up" style="animation-delay:0.05s">
           <div class="flex items-center justify-between mb-1">
-            <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Calorías · Últimos 7 días</p>
+            <p class="text-xs text-neutral-400 uppercase tracking-widest font-medium">Calorías · Últimos 7 días</p>
             <!-- Leyenda hoy -->
             <div class="flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              <span class="text-xs text-slate-500">Hoy</span>
+              <span class="w-2 h-2 rounded-full bg-indigo-400"></span>
+              <span class="text-xs text-neutral-500">Hoy</span>
             </div>
           </div>
-          <p class="text-xs text-slate-600 mb-4">Objetivo: <span id="week-goal-label">—</span> kcal/día</p>
+          <p class="text-xs text-neutral-600 mb-4">Objetivo: <span id="week-goal-label">—</span> kcal/día</p>
           <div class="relative h-56">
             <canvas id="weekly-chart"></canvas>
           </div>
         </div>
 
         <!-- Gráfico de peso -->
-        <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 fade-up" style="animation-delay:0.1s">
+        <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 fade-up" style="animation-delay:0.1s">
           <div class="flex items-center justify-between mb-1">
-            <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Peso · Últimos 30 días</p>
+            <p class="text-xs text-neutral-400 uppercase tracking-widest font-medium">Peso · Últimos 30 días</p>
           </div>
           <div id="weight-stats" class="flex gap-5 mb-3 hidden">
             <div>
-              <p class="text-xs text-slate-500">Último registro</p>
-              <p class="text-lg font-bold text-white"><span id="weight-current">—</span> <span class="text-sm font-normal text-slate-500">kg</span></p>
+              <p class="text-xs text-neutral-500">Último registro</p>
+              <p class="text-lg font-bold text-white"><span id="weight-current">—</span> <span class="text-sm font-normal text-neutral-500">kg</span></p>
             </div>
             <div>
-              <p class="text-xs text-slate-500">Variación</p>
-              <p id="weight-change" class="text-lg font-bold text-slate-400">—</p>
+              <p class="text-xs text-neutral-500">Variación</p>
+              <p id="weight-change" class="text-lg font-bold text-neutral-400">—</p>
             </div>
           </div>
-          <div id="weight-empty" class="py-6 text-center text-slate-600 text-sm">Aún no hay registros de peso</div>
+          <div id="weight-empty" class="py-6 text-center text-neutral-600 text-sm">Aún no hay registros de peso</div>
           <div id="weight-chart-wrapper" class="relative h-48 hidden">
             <canvas id="weight-chart"></canvas>
           </div>
@@ -415,7 +415,7 @@
         <!-- Crear / Unirse -->
         <div class="grid grid-cols-2 gap-3 fade-up">
           <button id="btn-create-group"
-            class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white rounded-2xl p-4 font-semibold text-sm transition-all flex flex-col items-center gap-2">
+            class="bg-indigo-500 hover:bg-indigo-400 active:scale-95 text-white rounded-2xl p-4 font-semibold text-sm transition-all flex flex-col items-center gap-2">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
               <line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/>
@@ -423,7 +423,7 @@
             Crear grupo
           </button>
           <button id="btn-join-group"
-            class="bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-200 rounded-2xl p-4 font-semibold text-sm transition-all flex flex-col items-center gap-2">
+            class="bg-neutral-800 hover:bg-neutral-700 active:scale-95 text-neutral-200 rounded-2xl p-4 font-semibold text-sm transition-all flex flex-col items-center gap-2">
             <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
               <polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>
@@ -433,18 +433,18 @@
         </div>
 
         <!-- Formulario crear grupo (oculto por defecto) -->
-        <div id="form-create-group" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 hidden">
-          <p class="text-xs text-slate-400 uppercase tracking-widest mb-3 font-medium">Nuevo grupo</p>
+        <div id="form-create-group" class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 hidden">
+          <p class="text-xs text-neutral-400 uppercase tracking-widest mb-3 font-medium">Nuevo grupo</p>
           <input id="group-name-input" type="text" placeholder="Nombre del grupo" maxlength="40"
-            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
-                   border border-slate-700 focus:outline-none focus:border-emerald-500/70 transition-all mb-2"/>
+            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600
+                   border border-neutral-700 focus:outline-none focus:border-indigo-500/70 transition-all mb-2"/>
           <div class="flex gap-2">
             <button id="btn-create-group-confirm"
-              class="flex-1 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white rounded-xl py-2.5 font-semibold text-sm transition-all">
+              class="flex-1 bg-indigo-500 hover:bg-indigo-400 active:scale-95 text-white rounded-xl py-2.5 font-semibold text-sm transition-all">
               Crear
             </button>
             <button id="btn-create-group-cancel"
-              class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl py-2.5 text-sm transition-all">
+              class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl py-2.5 text-sm transition-all">
               Cancelar
             </button>
           </div>
@@ -452,18 +452,18 @@
         </div>
 
         <!-- Formulario unirse (oculto por defecto) -->
-        <div id="form-join-group" class="bg-slate-900 rounded-2xl p-4 border border-slate-800 hidden">
-          <p class="text-xs text-slate-400 uppercase tracking-widest mb-3 font-medium">Unirse con código</p>
+        <div id="form-join-group" class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 hidden">
+          <p class="text-xs text-neutral-400 uppercase tracking-widest mb-3 font-medium">Unirse con código</p>
           <input id="group-code-input" type="text" placeholder="Código del grupo (ej: ABC123)" maxlength="6"
-            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
-                   border border-slate-700 focus:outline-none focus:border-emerald-500/70 transition-all mb-2 uppercase"/>
+            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600
+                   border border-neutral-700 focus:outline-none focus:border-indigo-500/70 transition-all mb-2 uppercase"/>
           <div class="flex gap-2">
             <button id="btn-join-group-confirm"
-              class="flex-1 bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white rounded-xl py-2.5 font-semibold text-sm transition-all">
+              class="flex-1 bg-indigo-500 hover:bg-indigo-400 active:scale-95 text-white rounded-xl py-2.5 font-semibold text-sm transition-all">
               Unirme
             </button>
             <button id="btn-join-group-cancel"
-              class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl py-2.5 text-sm transition-all">
+              class="flex-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded-xl py-2.5 text-sm transition-all">
               Cancelar
             </button>
           </div>
@@ -475,15 +475,15 @@
 
         <!-- Ranking del grupo seleccionado -->
         <div id="ranking-panel" class="hidden">
-          <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden fade-up">
+          <div class="bg-neutral-900 rounded-2xl border border-neutral-800 overflow-hidden fade-up">
             <!-- Tabs semana / total -->
-            <div class="flex border-b border-slate-800">
+            <div class="flex border-b border-neutral-800">
               <button id="rank-tab-week" onclick="switchRankTab('week')"
-                class="flex-1 py-3 text-xs font-semibold text-emerald-400 border-b-2 border-emerald-500">
+                class="flex-1 py-3 text-xs font-semibold text-indigo-400 border-b-2 border-indigo-500">
                 Esta semana
               </button>
               <button id="rank-tab-total" onclick="switchRankTab('total')"
-                class="flex-1 py-3 text-xs font-semibold text-slate-500 border-b-2 border-transparent">
+                class="flex-1 py-3 text-xs font-semibold text-neutral-500 border-b-2 border-transparent">
                 Total histórico
               </button>
             </div>
@@ -503,9 +503,9 @@
 
         <!-- Cabecera -->
         <div class="flex items-center justify-between fade-up">
-          <p class="text-xs text-slate-400 uppercase tracking-widest font-medium">Mis ejercicios</p>
+          <p class="text-xs text-neutral-400 uppercase tracking-widest font-medium">Mis ejercicios</p>
           <button id="gym-add-btn"
-            class="flex items-center gap-1.5 bg-emerald-500 hover:bg-emerald-400 active:scale-95
+            class="flex items-center gap-1.5 bg-indigo-500 hover:bg-indigo-400 active:scale-95
                    text-white rounded-xl px-3 py-2 text-xs font-semibold transition-all">
             <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
               <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/>
@@ -516,26 +516,26 @@
 
         <!-- Filtros de músculo -->
         <div class="flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 fade-up" style="scrollbar-width:none">
-          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-emerald-500 text-white" data-muscle="all">Todos</button>
-          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-slate-800 text-slate-400" data-muscle="Pecho">Pecho</button>
-          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-slate-800 text-slate-400" data-muscle="Hombro">Hombro</button>
-          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-slate-800 text-slate-400" data-muscle="Tríceps">Tríceps</button>
-          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-slate-800 text-slate-400" data-muscle="Espalda">Espalda</button>
-          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-slate-800 text-slate-400" data-muscle="Bíceps">Bíceps</button>
-          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-slate-800 text-slate-400" data-muscle="Pierna">Pierna</button>
+          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-indigo-500 text-white" data-muscle="all">Todos</button>
+          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-neutral-800 text-neutral-400" data-muscle="Pecho">Pecho</button>
+          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-neutral-800 text-neutral-400" data-muscle="Hombro">Hombro</button>
+          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-neutral-800 text-neutral-400" data-muscle="Tríceps">Tríceps</button>
+          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-neutral-800 text-neutral-400" data-muscle="Espalda">Espalda</button>
+          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-neutral-800 text-neutral-400" data-muscle="Bíceps">Bíceps</button>
+          <button class="gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-neutral-800 text-neutral-400" data-muscle="Pierna">Pierna</button>
         </div>
 
         <!-- Lista de ejercicios (renderizada por JS) -->
         <div id="gym-exercises-list" class="space-y-3"></div>
 
         <!-- Estado vacío -->
-        <div id="gym-empty" class="hidden bg-slate-900 rounded-2xl border border-slate-800 p-8 text-center fade-up">
-          <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center mx-auto mb-3">
-            <svg class="w-5 h-5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div id="gym-empty" class="hidden bg-neutral-900 rounded-2xl border border-neutral-800 p-8 text-center fade-up">
+          <div class="w-10 h-10 rounded-xl bg-neutral-800 flex items-center justify-center mx-auto mb-3">
+            <svg class="w-5 h-5 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M6 5v14M18 5v14M3 8h3m12 0h3M3 16h3m12 0h3M9 5l6 0M9 19l6 0"/>
             </svg>
           </div>
-          <p class="text-slate-500 text-sm">No tienes ejercicios registrados.<br>Pulsa <span class="text-emerald-400 font-medium">Añadir</span> para empezar.</p>
+          <p class="text-neutral-500 text-sm">No tienes ejercicios registrados.<br>Pulsa <span class="text-indigo-400 font-medium">Añadir</span> para empezar.</p>
         </div>
 
       </div><!-- /tab-gym -->
@@ -545,7 +545,7 @@
     <!-- ── BARRA DE NAVEGACIÓN INFERIOR ──────────────────────── -->
     <nav class="fixed bottom-0 left-0 right-0 z-50">
       <!-- Fondo con blur -->
-      <div class="max-w-md mx-auto bg-slate-900/90 backdrop-blur-xl border-t border-slate-800 safe-bottom">
+      <div class="max-w-md mx-auto bg-neutral-900/90 backdrop-blur-xl border-t border-neutral-800 safe-bottom">
         <div class="flex">
 
           <!-- Tab: Hoy -->
@@ -612,8 +612,8 @@
   <button
     id="chat-fab"
     title="Asistente nutricional"
-    class="fixed bottom-28 right-4 z-40 w-13 h-13 w-[52px] h-[52px] bg-emerald-500 hover:bg-emerald-400 active:scale-95
-           rounded-full shadow-lg shadow-emerald-500/30 flex items-center justify-center transition-all"
+    class="fixed bottom-28 right-4 z-40 w-13 h-13 w-[52px] h-[52px] bg-indigo-500 hover:bg-indigo-400 active:scale-95
+           rounded-full shadow-lg shadow-indigo-500/30 flex items-center justify-center transition-all"
   >
     <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
@@ -625,26 +625,26 @@
   ════════════════════════════════════════════════════════════ -->
   <div
     id="chat-panel"
-    class="fixed inset-0 z-[90] flex flex-col bg-slate-950 hidden"
+    class="fixed inset-0 z-[90] flex flex-col bg-neutral-950 hidden"
   >
     <!-- Cabecera -->
-    <div class="safe-top px-5 pb-3 flex items-center justify-between shrink-0 border-b border-slate-800">
+    <div class="safe-top px-5 pb-3 flex items-center justify-between shrink-0 border-b border-neutral-800">
       <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="w-8 h-8 rounded-lg bg-indigo-500/15 flex items-center justify-center">
+          <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
         </div>
         <div>
           <h2 class="text-sm font-semibold text-white">Asistente NutriTrack</h2>
-          <p class="text-xs text-slate-500">Pregúntame lo que quieras sobre tu alimentación</p>
+          <p class="text-xs text-neutral-500">Pregúntame lo que quieras sobre tu alimentación</p>
         </div>
       </div>
       <button
         id="chat-close"
-        class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center transition-all"
+        class="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:scale-95 flex items-center justify-center transition-all"
       >
-        <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="w-4 h-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"/>
           <line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
@@ -655,19 +655,19 @@
     <div id="chat-messages" class="flex-1 overflow-y-auto px-4 py-4 space-y-3">
       <!-- Mensaje de bienvenida -->
       <div class="flex gap-2.5">
-        <div class="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0 mt-0.5">
-          <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div class="w-7 h-7 rounded-full bg-indigo-500/15 flex items-center justify-center shrink-0 mt-0.5">
+          <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
           </svg>
         </div>
-        <div class="bg-slate-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%]">
-          <p class="text-sm text-slate-200">¡Hola! Soy tu asistente nutricional. Tengo acceso a tus datos de hoy y puedo ayudarte con ideas de comida, dudas sobre nutrición o cualquier consulta. ¿En qué puedo ayudarte?</p>
+        <div class="bg-neutral-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%]">
+          <p class="text-sm text-neutral-200">¡Hola! Soy tu asistente nutricional. Tengo acceso a tus datos de hoy y puedo ayudarte con ideas de comida, dudas sobre nutrición o cualquier consulta. ¿En qué puedo ayudarte?</p>
         </div>
       </div>
     </div>
 
     <!-- Input -->
-    <div class="shrink-0 px-4 py-3 border-t border-slate-800 safe-bottom bg-slate-950">
+    <div class="shrink-0 px-4 py-3 border-t border-neutral-800 safe-bottom bg-neutral-950">
       <div class="flex gap-2">
         <input
           id="chat-input"
@@ -675,14 +675,14 @@
           inputmode="text"
           autocomplete="off"
           placeholder="Escribe tu pregunta…"
-          class="flex-1 bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
-                 border border-slate-700 focus:outline-none focus:border-emerald-500/70
-                 focus:ring-1 focus:ring-emerald-500/30 transition-all"
+          class="flex-1 bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600
+                 border border-neutral-700 focus:outline-none focus:border-indigo-500/70
+                 focus:ring-1 focus:ring-indigo-500/30 transition-all"
         />
         <button
           id="chat-send"
-          class="w-11 h-11 bg-emerald-500 hover:bg-emerald-400 active:scale-95
-                 disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed
+          class="w-11 h-11 bg-indigo-500 hover:bg-indigo-400 active:scale-95
+                 disabled:bg-neutral-800 disabled:text-neutral-600 disabled:cursor-not-allowed
                  text-white rounded-xl flex items-center justify-center transition-all shrink-0"
         >
           <svg id="chat-send-icon" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -712,13 +712,13 @@
     <div id="modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
 
     <!-- Panel -->
-    <div class="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-t-3xl sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl">
+    <div class="relative w-full max-w-md bg-neutral-900 border border-neutral-700 rounded-t-3xl sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl">
 
       <!-- Cabecera del modal -->
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center">
-            <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <div class="w-8 h-8 rounded-lg bg-indigo-500/15 flex items-center justify-center">
+            <svg class="w-4 h-4 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
               <circle cx="12" cy="12" r="3"/>
             </svg>
@@ -727,10 +727,10 @@
         </div>
         <button
           id="modal-close"
-          class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center transition-all"
+          class="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:scale-95 flex items-center justify-center transition-all"
           aria-label="Cerrar"
         >
-          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg class="w-4 h-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/>
             <line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
@@ -741,7 +741,7 @@
       <div class="space-y-4">
         <!-- Calorías -->
         <div>
-          <label for="goal-calories" class="block text-xs text-slate-400 uppercase tracking-widest font-medium mb-1.5">
+          <label for="goal-calories" class="block text-xs text-neutral-400 uppercase tracking-widest font-medium mb-1.5">
             Calorías objetivo
           </label>
           <div class="relative">
@@ -752,17 +752,17 @@
               min="500"
               max="9999"
               placeholder="2000"
-              class="w-full bg-slate-800 rounded-xl px-4 py-3 pr-14 text-sm text-white placeholder-slate-600
-                     border border-slate-700 focus:outline-none focus:border-emerald-500/70
-                     focus:ring-1 focus:ring-emerald-500/30 transition-all"
+              class="w-full bg-neutral-800 rounded-xl px-4 py-3 pr-14 text-sm text-white placeholder-neutral-600
+                     border border-neutral-700 focus:outline-none focus:border-indigo-500/70
+                     focus:ring-1 focus:ring-indigo-500/30 transition-all"
             />
-            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">kcal</span>
+            <span class="absolute right-4 top-1/2 -tranneutral-y-1/2 text-xs text-neutral-500 pointer-events-none">kcal</span>
           </div>
         </div>
 
         <!-- Proteínas -->
         <div>
-          <label for="goal-proteins" class="block text-xs text-slate-400 uppercase tracking-widest font-medium mb-1.5">
+          <label for="goal-proteins" class="block text-xs text-neutral-400 uppercase tracking-widest font-medium mb-1.5">
             Proteínas objetivo
           </label>
           <div class="relative">
@@ -773,23 +773,23 @@
               min="10"
               max="999"
               placeholder="150"
-              class="w-full bg-slate-800 rounded-xl px-4 py-3 pr-8 text-sm text-white placeholder-slate-600
-                     border border-slate-700 focus:outline-none focus:border-blue-500/70
+              class="w-full bg-neutral-800 rounded-xl px-4 py-3 pr-8 text-sm text-white placeholder-neutral-600
+                     border border-neutral-700 focus:outline-none focus:border-blue-500/70
                      focus:ring-1 focus:ring-blue-500/30 transition-all"
             />
-            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">g</span>
+            <span class="absolute right-4 top-1/2 -tranneutral-y-1/2 text-xs text-neutral-500 pointer-events-none">g</span>
           </div>
         </div>
       </div>
 
       <!-- Notificaciones -->
-      <div class="flex items-center justify-between pt-2 border-t border-slate-800">
+      <div class="flex items-center justify-between pt-2 border-t border-neutral-800">
         <div>
-          <p class="text-sm font-medium text-slate-200">Recordatorios</p>
-          <p class="text-xs text-slate-500">Aviso si llevas 6h sin registrar</p>
+          <p class="text-sm font-medium text-neutral-200">Recordatorios</p>
+          <p class="text-xs text-neutral-500">Aviso si llevas 6h sin registrar</p>
         </div>
         <button id="notif-toggle"
-          class="relative w-11 h-6 rounded-full transition-colors bg-slate-700"
+          class="relative w-11 h-6 rounded-full transition-colors bg-neutral-700"
           onclick="toggleNotifications()"
         >
           <span id="notif-dot" class="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform"></span>
@@ -802,8 +802,8 @@
       <!-- Botón guardar -->
       <button
         id="save-goals-btn"
-        class="mt-6 w-full bg-emerald-500 hover:bg-emerald-400 active:scale-[0.98]
-               disabled:bg-slate-800 disabled:text-slate-600 disabled:cursor-not-allowed
+        class="mt-6 w-full bg-indigo-500 hover:bg-indigo-400 active:scale-[0.98]
+               disabled:bg-neutral-800 disabled:text-neutral-600 disabled:cursor-not-allowed
                text-white rounded-xl py-3 font-semibold text-sm transition-all duration-150
                flex items-center justify-center gap-2"
       >
@@ -824,7 +824,7 @@
   ════════════════════════════════════════════════════════════ -->
   <div id="gym-modal" class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center hidden" role="dialog" aria-modal="true">
     <div id="gym-modal-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-    <div class="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-t-3xl sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl">
+    <div class="relative w-full max-w-md bg-neutral-900 border border-neutral-700 rounded-t-3xl sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl">
 
       <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-2.5">
@@ -835,8 +835,8 @@
           </div>
           <h2 class="text-base font-semibold text-white">Nuevo ejercicio</h2>
         </div>
-        <button id="gym-modal-close" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center transition-all" aria-label="Cerrar">
-          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button id="gym-modal-close" class="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:scale-95 flex items-center justify-center transition-all" aria-label="Cerrar">
+          <svg class="w-4 h-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
@@ -844,29 +844,29 @@
 
       <div class="space-y-4">
         <div>
-          <label class="block text-xs text-slate-400 uppercase tracking-widest font-medium mb-1.5">Nombre del ejercicio</label>
+          <label class="block text-xs text-neutral-400 uppercase tracking-widest font-medium mb-1.5">Nombre del ejercicio</label>
           <input id="gym-exercise-name" type="text" autocomplete="off" placeholder="Ej: Press banca"
-            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600
-                   border border-slate-700 focus:outline-none focus:border-emerald-500/70
-                   focus:ring-1 focus:ring-emerald-500/30 transition-all"/>
+            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600
+                   border border-neutral-700 focus:outline-none focus:border-indigo-500/70
+                   focus:ring-1 focus:ring-indigo-500/30 transition-all"/>
         </div>
 
         <div>
-          <label class="block text-xs text-slate-400 uppercase tracking-widest font-medium mb-2">Músculo</label>
+          <label class="block text-xs text-neutral-400 uppercase tracking-widest font-medium mb-2">Músculo</label>
           <div class="grid grid-cols-3 gap-2">
-            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-muscle="Pecho">Pecho</button>
-            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-muscle="Hombro">Hombro</button>
-            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-muscle="Tríceps">Tríceps</button>
-            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-muscle="Espalda">Espalda</button>
-            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-muscle="Bíceps">Bíceps</button>
-            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-muscle="Pierna">Pierna</button>
+            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-neutral-800 text-neutral-400 hover:bg-neutral-700" data-muscle="Pecho">Pecho</button>
+            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-neutral-800 text-neutral-400 hover:bg-neutral-700" data-muscle="Hombro">Hombro</button>
+            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-neutral-800 text-neutral-400 hover:bg-neutral-700" data-muscle="Tríceps">Tríceps</button>
+            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-neutral-800 text-neutral-400 hover:bg-neutral-700" data-muscle="Espalda">Espalda</button>
+            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-neutral-800 text-neutral-400 hover:bg-neutral-700" data-muscle="Bíceps">Bíceps</button>
+            <button class="gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-neutral-800 text-neutral-400 hover:bg-neutral-700" data-muscle="Pierna">Pierna</button>
           </div>
         </div>
 
         <p id="gym-modal-error" class="text-xs text-rose-400 hidden"></p>
         <button id="gym-modal-save"
-          class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-95 disabled:bg-slate-800
-                 disabled:text-slate-600 disabled:cursor-not-allowed text-white rounded-xl py-3
+          class="w-full bg-indigo-500 hover:bg-indigo-400 active:scale-95 disabled:bg-neutral-800
+                 disabled:text-neutral-600 disabled:cursor-not-allowed text-white rounded-xl py-3
                  font-semibold text-sm transition-all duration-150">
           Añadir ejercicio
         </button>
@@ -879,27 +879,27 @@
   ════════════════════════════════════════════════════════════ -->
   <div id="gym-join-modal" class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center hidden" role="dialog" aria-modal="true">
     <div id="gym-join-backdrop" class="absolute inset-0 bg-black/60 backdrop-blur-sm"></div>
-    <div class="relative w-full max-w-md bg-slate-900 border border-slate-700 rounded-t-3xl sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl">
+    <div class="relative w-full max-w-md bg-neutral-900 border border-neutral-700 rounded-t-3xl sm:rounded-2xl p-6 pb-8 sm:pb-6 shadow-2xl">
       <div class="flex items-center justify-between mb-6">
         <h2 class="text-base font-semibold text-white">Unirse con código</h2>
-        <button id="gym-join-close" class="w-8 h-8 rounded-lg bg-slate-800 hover:bg-slate-700 active:scale-95 flex items-center justify-center transition-all">
-          <svg class="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <button id="gym-join-close" class="w-8 h-8 rounded-lg bg-neutral-800 hover:bg-neutral-700 active:scale-95 flex items-center justify-center transition-all">
+          <svg class="w-4 h-4 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
         </button>
       </div>
       <div class="space-y-4">
         <div>
-          <label class="block text-xs text-slate-400 uppercase tracking-widest font-medium mb-1.5">Código de tu compañero</label>
+          <label class="block text-xs text-neutral-400 uppercase tracking-widest font-medium mb-1.5">Código de tu compañero</label>
           <input id="gym-join-code" type="text" autocomplete="off" placeholder="Ej: AB3X7K" maxlength="6"
-            class="w-full bg-slate-800 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-600 uppercase
-                   border border-slate-700 focus:outline-none focus:border-emerald-500/70
-                   focus:ring-1 focus:ring-emerald-500/30 transition-all tracking-widest text-center font-mono text-lg"/>
+            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 uppercase
+                   border border-neutral-700 focus:outline-none focus:border-indigo-500/70
+                   focus:ring-1 focus:ring-indigo-500/30 transition-all tracking-widest text-center font-mono text-lg"/>
         </div>
         <p id="gym-join-error" class="text-xs text-rose-400 hidden"></p>
         <button id="gym-join-save"
-          class="w-full bg-emerald-500 hover:bg-emerald-400 active:scale-95 disabled:bg-slate-800
-                 disabled:text-slate-600 text-white rounded-xl py-3 font-semibold text-sm transition-all">
+          class="w-full bg-indigo-500 hover:bg-indigo-400 active:scale-95 disabled:bg-neutral-800
+                 disabled:text-neutral-600 text-white rounded-xl py-3 font-semibold text-sm transition-all">
           Vincularme
         </button>
       </div>

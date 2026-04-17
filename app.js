@@ -227,9 +227,9 @@ function setSaveLoading(active) {
 
 function showModalStatus(msg, type) {
   const el = $('modal-status');
-  const styles = { success: 'text-emerald-400', error: 'text-rose-400' };
+  const styles = { success: 'text-indigo-400', error: 'text-rose-400' };
   el.textContent = msg;
-  el.className   = `text-xs mt-3 ${styles[type] || 'text-slate-400'}`;
+  el.className   = `text-xs mt-3 ${styles[type] || 'text-neutral-400'}`;
   el.classList.remove('hidden');
 }
 
@@ -289,12 +289,12 @@ function showStatus(msg, type) {
   const el = $('form-status');
   const styles = {
     info:    'text-amber-400',
-    success: 'text-emerald-400',
+    success: 'text-indigo-400',
     warn:    'text-orange-400',
     error:   'text-rose-400',
   };
   el.textContent = msg;
-  el.className   = `text-xs mt-2 transition-opacity ${styles[type] || 'text-slate-400'}`;
+  el.className   = `text-xs mt-2 transition-opacity ${styles[type] || 'text-neutral-400'}`;
   el.classList.remove('hidden', 'opacity-0');
 
   if (type === 'success' || type === 'error' || type === 'warn') {
@@ -349,10 +349,10 @@ function renderEntries(entries) {
 
   card.classList.remove('hidden');
   list.innerHTML = entries.map((e) => `
-    <li class="flex items-center justify-between gap-2 py-2 border-b border-slate-800 last:border-0">
+    <li class="flex items-center justify-between gap-2 py-2 border-b border-neutral-800 last:border-0">
       <div class="flex-1 min-w-0">
-        <p class="text-sm text-slate-200 truncate">${escapeHtml(e.food_name)}</p>
-        <p class="text-xs text-slate-500">${Math.round(e.calories)} kcal
+        <p class="text-sm text-neutral-200 truncate">${escapeHtml(e.food_name)}</p>
+        <p class="text-xs text-neutral-500">${Math.round(e.calories)} kcal
           · ${Math.round(e.proteins)}g prot
           · ${Math.round(e.carbs)}g carbs
           · ${Math.round(e.fats)}g grasas
@@ -360,7 +360,7 @@ function renderEntries(entries) {
       </div>
       <button
         onclick="deleteEntry('${e.id}')"
-        class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400
+        class="w-7 h-7 rounded-lg bg-neutral-800 hover:bg-rose-500/20 hover:text-rose-400
                flex items-center justify-center transition-all shrink-0"
         title="Eliminar"
       >
@@ -487,19 +487,19 @@ function appendChatMessage(role, text) {
   if (role === 'user') {
     div.className = 'flex justify-end';
     div.innerHTML = `
-      <div class="bg-emerald-500/20 border border-emerald-500/20 rounded-2xl rounded-tr-sm px-3.5 py-2.5 max-w-[85%]">
-        <p class="text-sm text-slate-200">${safeText}</p>
+      <div class="bg-indigo-500/20 border border-indigo-500/20 rounded-2xl rounded-tr-sm px-3.5 py-2.5 max-w-[85%]">
+        <p class="text-sm text-neutral-200">${safeText}</p>
       </div>`;
   } else {
     div.className = 'flex gap-2.5';
     div.innerHTML = `
-      <div class="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0 mt-0.5">
-        <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="w-7 h-7 rounded-full bg-indigo-500/15 flex items-center justify-center shrink-0 mt-0.5">
+        <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </div>
-      <div class="bg-slate-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%]">
-        <p class="text-sm text-slate-200">${safeText}</p>
+      <div class="bg-neutral-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5 max-w-[85%]">
+        <p class="text-sm text-neutral-200">${safeText}</p>
       </div>`;
   }
 
@@ -524,16 +524,16 @@ function setChatLoading(active) {
     typing.id = 'chat-typing';
     typing.className = 'flex gap-2.5';
     typing.innerHTML = `
-      <div class="w-7 h-7 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0 mt-0.5">
-        <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <div class="w-7 h-7 rounded-full bg-indigo-500/15 flex items-center justify-center shrink-0 mt-0.5">
+        <svg class="w-3.5 h-3.5 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
         </svg>
       </div>
-      <div class="bg-slate-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5">
+      <div class="bg-neutral-800 rounded-2xl rounded-tl-sm px-3.5 py-2.5">
         <div class="flex gap-1 items-center h-5">
-          <span class="typing-dot w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
-          <span class="typing-dot w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
-          <span class="typing-dot w-1.5 h-1.5 bg-slate-400 rounded-full"></span>
+          <span class="typing-dot w-1.5 h-1.5 bg-neutral-400 rounded-full"></span>
+          <span class="typing-dot w-1.5 h-1.5 bg-neutral-400 rounded-full"></span>
+          <span class="typing-dot w-1.5 h-1.5 bg-neutral-400 rounded-full"></span>
         </div>
       </div>`;
     messages.appendChild(typing);
@@ -586,19 +586,19 @@ async function loadGroups() {
 function renderGroupsList() {
   const container = $('groups-list');
   if (!userGroups.length) {
-    container.innerHTML = `<p class="text-sm text-slate-500 text-center py-4">Aún no perteneces a ningún grupo.<br>Crea uno o únete con un código.</p>`;
+    container.innerHTML = `<p class="text-sm text-neutral-500 text-center py-4">Aún no perteneces a ningún grupo.<br>Crea uno o únete con un código.</p>`;
     return;
   }
 
   container.innerHTML = userGroups.map(g => `
-    <div class="bg-slate-900 rounded-2xl p-4 border border-slate-800 cursor-pointer hover:border-emerald-500/40 transition-all"
+    <div class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 cursor-pointer hover:border-indigo-500/40 transition-all"
          onclick="selectGroup('${g.id}')">
       <div class="flex items-center justify-between">
         <div>
           <p class="text-sm font-semibold text-white">${escapeHtml(g.name)}</p>
-          ${g.isOwner ? `<p class="text-xs text-slate-500 mt-0.5">Código: <span class="text-emerald-400 font-mono font-semibold">${g.code}</span></p>` : '<p class="text-xs text-slate-500 mt-0.5">Miembro</p>'}
+          ${g.isOwner ? `<p class="text-xs text-neutral-500 mt-0.5">Código: <span class="text-indigo-400 font-mono font-semibold">${g.code}</span></p>` : '<p class="text-xs text-neutral-500 mt-0.5">Miembro</p>'}
         </div>
-        <svg class="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <svg class="w-4 h-4 text-neutral-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="9 18 15 12 9 6"/>
         </svg>
       </div>
@@ -609,7 +609,7 @@ function renderGroupsList() {
 async function selectGroup(groupId) {
   activeGroupId = groupId;
   $('ranking-panel').classList.remove('hidden');
-  $('ranking-list').innerHTML = `<p class="text-xs text-slate-500 text-center py-4">Cargando ranking…</p>`;
+  $('ranking-list').innerHTML = `<p class="text-xs text-neutral-500 text-center py-4">Cargando ranking…</p>`;
   $('ranking-panel').scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   try {
@@ -626,11 +626,11 @@ async function selectGroup(groupId) {
 function switchRankTab(tab) {
   activeRankingTab = tab;
   $('rank-tab-week').className  = tab === 'week'
-    ? 'flex-1 py-3 text-xs font-semibold text-emerald-400 border-b-2 border-emerald-500'
-    : 'flex-1 py-3 text-xs font-semibold text-slate-500 border-b-2 border-transparent';
+    ? 'flex-1 py-3 text-xs font-semibold text-indigo-400 border-b-2 border-indigo-500'
+    : 'flex-1 py-3 text-xs font-semibold text-neutral-500 border-b-2 border-transparent';
   $('rank-tab-total').className = tab === 'total'
-    ? 'flex-1 py-3 text-xs font-semibold text-emerald-400 border-b-2 border-emerald-500'
-    : 'flex-1 py-3 text-xs font-semibold text-slate-500 border-b-2 border-transparent';
+    ? 'flex-1 py-3 text-xs font-semibold text-indigo-400 border-b-2 border-indigo-500'
+    : 'flex-1 py-3 text-xs font-semibold text-neutral-500 border-b-2 border-transparent';
   renderRanking();
 }
 
@@ -640,12 +640,12 @@ function renderRanking() {
   const medals   = ['🥇', '🥈', '🥉'];
 
   $('ranking-list').innerHTML = sorted.map((member, i) => `
-    <div class="flex items-center gap-3 py-2 ${member.isYou ? 'bg-emerald-500/5 -mx-4 px-4 rounded-xl' : ''}">
+    <div class="flex items-center gap-3 py-2 ${member.isYou ? 'bg-indigo-500/5 -mx-4 px-4 rounded-xl' : ''}">
       <span class="text-base w-6 text-center">${medals[i] || `${i + 1}`}</span>
       <div class="flex-1 min-w-0">
-        <p class="text-sm font-medium text-slate-200 truncate">${escapeHtml(member.name)} ${member.isYou ? '<span class="text-xs text-emerald-400">(tú)</span>' : ''}</p>
+        <p class="text-sm font-medium text-neutral-200 truncate">${escapeHtml(member.name)} ${member.isYou ? '<span class="text-xs text-indigo-400">(tú)</span>' : ''}</p>
       </div>
-      <span class="text-sm font-bold text-white">${member[scoreKey]} <span class="text-xs font-normal text-slate-500">pts</span></span>
+      <span class="text-sm font-bold text-white">${member[scoreKey]} <span class="text-xs font-normal text-neutral-500">pts</span></span>
     </div>
   `).join('');
 }
@@ -673,7 +673,7 @@ async function handleCreateGroup() {
     $('form-create-group').classList.add('hidden');
     await loadGroups();
     statusEl.textContent = `Grupo creado. Código: ${group.code}`;
-    statusEl.className   = 'text-xs mt-2 text-emerald-400';
+    statusEl.className   = 'text-xs mt-2 text-indigo-400';
     statusEl.classList.remove('hidden');
   } catch (err) {
     statusEl.textContent = err.message;
@@ -724,8 +724,8 @@ function updateNotifToggleUI(active) {
   const toggle = $('notif-toggle');
   const dot    = $('notif-dot');
   if (!toggle) return;
-  toggle.className = `relative w-11 h-6 rounded-full transition-colors ${active ? 'bg-emerald-500' : 'bg-slate-700'}`;
-  dot.style.transform = active ? 'translateX(20px)' : 'translateX(0)';
+  toggle.className = `relative w-11 h-6 rounded-full transition-colors ${active ? 'bg-indigo-500' : 'bg-neutral-700'}`;
+  dot.style.transform = active ? 'tranneutralX(20px)' : 'tranneutralX(0)';
 }
 
 async function toggleNotifications() {
@@ -856,7 +856,7 @@ async function saveWeight() {
 
     input.value = '';
     status.textContent = '¡Peso guardado!';
-    status.className   = 'text-xs mt-2 text-emerald-400';
+    status.className   = 'text-xs mt-2 text-indigo-400';
     status.classList.remove('hidden');
     setTimeout(() => status.classList.add('hidden'), 3000);
 
@@ -897,7 +897,7 @@ function renderWeightChart(entries) {
     const sign   = diff > 0 ? '+' : '';
     const el     = $('weight-change');
     el.textContent = `${sign}${diff.toFixed(1)} kg`;
-    el.className   = `text-lg font-bold ${diff > 0 ? 'text-rose-400' : diff < 0 ? 'text-emerald-400' : 'text-slate-400'}`;
+    el.className   = `text-lg font-bold ${diff > 0 ? 'text-rose-400' : diff < 0 ? 'text-indigo-400' : 'text-neutral-400'}`;
   } else {
     $('weight-change').textContent = '—';
   }
@@ -919,11 +919,11 @@ function renderWeightChart(entries) {
         labels,
         datasets: [{
           data:            values,
-          borderColor:     '#10b981',
-          backgroundColor: 'rgba(16,185,129,0.08)',
+          borderColor:     '#6366f1',
+          backgroundColor: 'rgba(99,102,241,0.08)',
           borderWidth:     2,
           pointRadius:     3,
-          pointBackgroundColor: '#10b981',
+          pointBackgroundColor: '#6366f1',
           tension:         0.3,
           fill:            true,
         }],
@@ -935,8 +935,8 @@ function renderWeightChart(entries) {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#1e293b',
-            borderColor:     '#334155',
+            backgroundColor: '#171717',
+            borderColor:     '#262626',
             borderWidth:     1,
             padding:         10,
             callbacks: { label: (ctx) => ` ${ctx.raw} kg` },
@@ -949,7 +949,7 @@ function renderWeightChart(entries) {
             ticks:  { font: { size: 10 }, maxTicksLimit: 6 },
           },
           y: {
-            grid:   { color: '#1e293b' },
+            grid:   { color: '#171717' },
             border: { display: false },
             ticks:  { font: { size: 11 }, callback: (v) => `${v} kg` },
           },
@@ -990,10 +990,10 @@ function renderProgress(today) {
     'h-full rounded-full progress-bar-fill',
     calOverGoal
       ? 'bg-gradient-to-r from-rose-500 to-rose-400'
-      : 'bg-gradient-to-r from-emerald-500 to-emerald-400',
+      : 'bg-gradient-to-r from-indigo-500 to-violet-400',
   ].join(' ');
 
-  $('cal-pct').className = `text-sm font-semibold ${calOverGoal ? 'text-rose-400' : 'text-emerald-400'}`;
+  $('cal-pct').className = `text-sm font-semibold ${calOverGoal ? 'text-rose-400' : 'text-indigo-400'}`;
 }
 
 // ─── GRÁFICO DOUGHNUT ─────────────────────────────────────────────────────────
@@ -1009,7 +1009,7 @@ function renderMacroChart(today) {
   const isEmpty = total === 0;
   macroChart.data.datasets[0].data = isEmpty ? [1, 1, 1] : [proteins, carbs, fats];
   macroChart.data.datasets[0].backgroundColor = isEmpty
-    ? ['#1e293b', '#1e293b', '#1e293b']
+    ? ['#171717', '#171717', '#171717']
     : ['#60a5fa', '#fbbf24', '#fb7185'];
 
   macroChart.update('active');
@@ -1023,8 +1023,8 @@ function renderWeeklyChart(weekly) {
   const values  = weekly.map((d) => d.calories || 0);
   const lastIdx = values.length - 1;
 
-  const bgColors     = values.map((_, i) => (i === lastIdx ? '#10b981' : '#1e293b'));
-  const borderColors = values.map((_, i) => (i === lastIdx ? '#34d399' : '#334155'));
+  const bgColors     = values.map((_, i) => (i === lastIdx ? '#6366f1' : '#171717'));
+  const borderColors = values.map((_, i) => (i === lastIdx ? '#818cf8' : '#262626'));
 
   weeklyChart.data.labels                        = labels;
   weeklyChart.data.datasets[0].data              = values;
@@ -1040,7 +1040,7 @@ function renderWeeklyChart(weekly) {
 
 // ─── INICIALIZACIÓN DE CHARTS ─────────────────────────────────────────────────
 function initCharts() {
-  Chart.defaults.color       = '#94a3b8';
+  Chart.defaults.color       = '#a3a3a3';
   Chart.defaults.font.family = 'system-ui, -apple-system, BlinkMacSystemFont, sans-serif';
   Chart.defaults.font.size   = 12;
 
@@ -1051,7 +1051,7 @@ function initCharts() {
       labels: ['Proteínas', 'Carbohidratos', 'Grasas'],
       datasets: [{
         data:            [1, 1, 1],
-        backgroundColor: ['#1e293b', '#1e293b', '#1e293b'],
+        backgroundColor: ['#171717', '#171717', '#171717'],
         borderColor:     'transparent',
         borderWidth:     0,
         hoverOffset:     6,
@@ -1065,8 +1065,8 @@ function initCharts() {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#1e293b',
-          borderColor:     '#334155',
+          backgroundColor: '#171717',
+          borderColor:     '#262626',
           borderWidth:     1,
           padding:         10,
           callbacks: {
@@ -1085,8 +1085,8 @@ function initCharts() {
       datasets: [{
         label:           'Calorías',
         data:            Array(7).fill(0),
-        backgroundColor: Array(7).fill('#1e293b'),
-        borderColor:     Array(7).fill('#334155'),
+        backgroundColor: Array(7).fill('#171717'),
+        borderColor:     Array(7).fill('#262626'),
         borderWidth:     1,
         borderRadius:    8,
         borderSkipped:   false,
@@ -1099,8 +1099,8 @@ function initCharts() {
       plugins: {
         legend: { display: false },
         tooltip: {
-          backgroundColor: '#1e293b',
-          borderColor:     '#334155',
+          backgroundColor: '#171717',
+          borderColor:     '#262626',
           borderWidth:     1,
           padding:         10,
           callbacks: {
@@ -1115,7 +1115,7 @@ function initCharts() {
           ticks:  { font: { size: 11 } },
         },
         y: {
-          grid:   { color: '#1e293b', drawBorder: false },
+          grid:   { color: '#171717', drawBorder: false },
           border: { display: false },
           ticks: {
             font:     { size: 11 },
@@ -1133,7 +1133,7 @@ const MUSCLE_COLORS = {
   'Pecho':   'bg-blue-500/15 text-blue-400',
   'Hombro':  'bg-purple-500/15 text-purple-400',
   'Tríceps': 'bg-orange-500/15 text-orange-400',
-  'Espalda': 'bg-emerald-500/15 text-emerald-400',
+  'Espalda': 'bg-indigo-500/15 text-indigo-400',
   'Bíceps':  'bg-rose-500/15 text-rose-400',
   'Pierna':  'bg-amber-500/15 text-amber-400',
 };
@@ -1159,8 +1159,8 @@ function initGym() {
       gymSelectedMuscle = btn.dataset.muscle;
       document.querySelectorAll('.gym-muscle-btn').forEach(b => {
         b.className = b === btn
-          ? 'gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-emerald-500 text-white'
-          : 'gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-slate-800 text-slate-400 hover:bg-slate-700';
+          ? 'gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-indigo-500 text-white'
+          : 'gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-neutral-800 text-neutral-400 hover:bg-neutral-700';
       });
     });
   });
@@ -1170,8 +1170,8 @@ function initGym() {
       gymFilter = btn.dataset.muscle;
       document.querySelectorAll('.gym-filter').forEach(b => {
         b.className = b === btn
-          ? 'gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-emerald-500 text-white'
-          : 'gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-slate-800 text-slate-400';
+          ? 'gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-indigo-500 text-white'
+          : 'gym-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all bg-neutral-800 text-neutral-400';
       });
       renderGymExercises();
     });
@@ -1183,7 +1183,7 @@ function openGymModal() {
   $('gym-exercise-name').value = '';
   $('gym-modal-error').classList.add('hidden');
   document.querySelectorAll('.gym-muscle-btn').forEach(b => {
-    b.className = 'gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-slate-800 text-slate-400 hover:bg-slate-700';
+    b.className = 'gym-muscle-btn py-2.5 rounded-xl text-xs font-medium transition-all bg-neutral-800 text-neutral-400 hover:bg-neutral-700';
   });
   $('gym-modal').classList.remove('hidden');
   setTimeout(() => $('gym-exercise-name').focus(), 100);
@@ -1273,16 +1273,16 @@ function renderGymExercises() {
 }
 
 function gymExerciseCard(ex) {
-  const badge = MUSCLE_COLORS[ex.muscle_group] || 'bg-slate-700 text-slate-300';
+  const badge = MUSCLE_COLORS[ex.muscle_group] || 'bg-neutral-700 text-neutral-300';
   return `
-    <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden fade-up">
+    <div class="bg-neutral-900 rounded-2xl border border-neutral-800 overflow-hidden fade-up">
       <div class="p-4 flex items-center justify-between">
         <div class="flex items-center gap-2 min-w-0">
           <span class="text-sm font-semibold text-white truncate">${escapeHtml(ex.name)}</span>
           <span class="shrink-0 text-xs px-2 py-0.5 rounded-full ${badge}">${ex.muscle_group}</span>
         </div>
         <button onclick="deleteGymExercise('${ex.id}')"
-          class="w-7 h-7 rounded-lg bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400
+          class="w-7 h-7 rounded-lg bg-neutral-800 hover:bg-rose-500/20 hover:text-rose-400
                  flex items-center justify-center transition-all shrink-0 ml-2" title="Eliminar">
           <svg class="w-3.5 h-3.5" viewBox="0 0 20 20" fill="currentColor">
             <path fill-rule="evenodd" d="M8.75 1A2.75 2.75 0 006 3.75v.443c-.795.077-1.584.176-2.365.298a.75.75 0 10.23 1.482l.149-.022.841 10.518A2.75 2.75 0 007.596 19h4.807a2.75 2.75 0 002.742-2.53l.841-10.52.149.023a.75.75 0 00.23-1.482A41.03 41.03 0 0014 4.193V3.75A2.75 2.75 0 0011.25 1h-2.5zM10 4c.84 0 1.673.025 2.5.075V3.75c0-.69-.56-1.25-1.25-1.25h-2.5c-.69 0-1.25.56-1.25 1.25v.325C8.327 4.025 9.16 4 10 4zM8.58 7.72a.75.75 0 00-1.5.06l.3 7.5a.75.75 0 101.5-.06l-.3-7.5zm4.34.06a.75.75 0 10-1.5-.06l-.3 7.5a.75.75 0 101.5.06l.3-7.5z" clip-rule="evenodd"/>
@@ -1293,18 +1293,18 @@ function gymExerciseCard(ex) {
       <div class="px-4 pb-4 flex gap-2">
         <div class="relative flex-1">
           <input id="gym-weight-${ex.id}" type="number" inputmode="decimal" placeholder="Peso" min="0" step="0.5"
-            class="w-full bg-slate-800 rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder-slate-600
-                   border border-slate-700 focus:outline-none focus:border-emerald-500/70 transition-all"/>
-          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">kg</span>
+            class="w-full bg-neutral-800 rounded-xl px-3 py-2.5 pr-9 text-sm text-white placeholder-neutral-600
+                   border border-neutral-700 focus:outline-none focus:border-indigo-500/70 transition-all"/>
+          <span class="absolute right-3 top-1/2 -tranneutral-y-1/2 text-xs text-neutral-500 pointer-events-none">kg</span>
         </div>
         <div class="relative" style="width:76px">
           <input id="gym-reps-${ex.id}" type="number" inputmode="numeric" placeholder="Reps" min="1" step="1"
-            class="w-full bg-slate-800 rounded-xl px-3 py-2.5 pr-7 text-sm text-white placeholder-slate-600
-                   border border-slate-700 focus:outline-none focus:border-emerald-500/70 transition-all"/>
-          <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs text-slate-500 pointer-events-none">×</span>
+            class="w-full bg-neutral-800 rounded-xl px-3 py-2.5 pr-7 text-sm text-white placeholder-neutral-600
+                   border border-neutral-700 focus:outline-none focus:border-indigo-500/70 transition-all"/>
+          <span class="absolute right-2.5 top-1/2 -tranneutral-y-1/2 text-xs text-neutral-500 pointer-events-none">×</span>
         </div>
         <button onclick="logGymSet('${ex.id}')"
-          class="bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-white rounded-xl px-3 py-2.5
+          class="bg-indigo-500 hover:bg-indigo-400 active:scale-95 text-white rounded-xl px-3 py-2.5
                  font-semibold text-sm transition-all shrink-0 flex items-center justify-center" title="Registrar serie">
           <svg class="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
             <path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z"/>
@@ -1313,14 +1313,14 @@ function gymExerciseCard(ex) {
       </div>
 
       <button id="gym-toggle-${ex.id}" onclick="toggleGymChart('${ex.id}')"
-        class="w-full py-2.5 text-xs text-slate-500 border-t border-slate-800 flex items-center justify-center gap-1.5 hover:text-slate-300 transition-colors">
+        class="w-full py-2.5 text-xs text-neutral-500 border-t border-neutral-800 flex items-center justify-center gap-1.5 hover:text-neutral-300 transition-colors">
         <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
         </svg>
         Ver progreso
       </button>
 
-      <div id="gym-chart-section-${ex.id}" class="hidden border-t border-slate-800 p-4">
+      <div id="gym-chart-section-${ex.id}" class="hidden border-t border-neutral-800 p-4">
         <div id="gym-pr-${ex.id}" class="mb-3"></div>
         <div id="gym-chart-wrapper-${ex.id}" class="relative h-36 mb-3">
           <canvas id="gym-chart-${ex.id}"></canvas>
@@ -1426,22 +1426,22 @@ function renderGymChart(exerciseId, sets) {
   const todayEl   = $(`gym-sets-today-${exerciseId}`);
   if (todayEl) {
     todayEl.innerHTML = todaySets.length > 0 ? `
-      <p class="text-xs text-slate-500 uppercase tracking-widest mb-2 mt-1">Hoy</p>
+      <p class="text-xs text-neutral-500 uppercase tracking-widest mb-2 mt-1">Hoy</p>
       ${todaySets.map(s => `
-        <div class="flex items-center justify-between py-1.5 border-b border-slate-800 last:border-0">
+        <div class="flex items-center justify-between py-1.5 border-b border-neutral-800 last:border-0">
           <div>
-            <span class="text-sm text-slate-300">${s.weight} kg × ${s.reps} reps</span>
+            <span class="text-sm text-neutral-300">${s.weight} kg × ${s.reps} reps</span>
             <span class="text-xs text-violet-400 ml-2">1RM ~${calc1RM(s.weight, s.reps)} kg</span>
           </div>
           <button onclick="deleteGymSet('${s.id}','${exerciseId}')"
-            class="w-6 h-6 rounded-lg bg-slate-800 hover:bg-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all text-slate-500">
+            class="w-6 h-6 rounded-lg bg-neutral-800 hover:bg-rose-500/20 hover:text-rose-400 flex items-center justify-center transition-all text-neutral-500">
             <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
               <path d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"/>
             </svg>
           </button>
         </div>
       `).join('')}
-    ` : '<p class="text-xs text-slate-600 text-center py-2">Sin series hoy</p>';
+    ` : '<p class="text-xs text-neutral-600 text-center py-2">Sin series hoy</p>';
   }
 
   // 1RM máximo por fecha para el gráfico (fórmula de Epley)
@@ -1463,9 +1463,9 @@ function renderGymChart(exerciseId, sets) {
     prEl.innerHTML = `
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <span class="text-xs text-slate-500 uppercase tracking-widest">Récord</span>
+          <span class="text-xs text-neutral-500 uppercase tracking-widest">Récord</span>
           <span class="text-sm font-bold text-violet-400">${allTimePR} kg</span>
-          <span class="text-xs text-slate-600">(1RM estimado)</span>
+          <span class="text-xs text-neutral-600">(1RM estimado)</span>
         </div>
         ${isNewPR ? '<span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400">¡Nuevo PR!</span>' : ''}
       </div>
@@ -1506,8 +1506,8 @@ function renderGymChart(exerciseId, sets) {
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#1e293b',
-            borderColor:     '#334155',
+            backgroundColor: '#171717',
+            borderColor:     '#262626',
             borderWidth:     1,
             padding:         10,
             callbacks: { label: (ctx) => ` 1RM estimado: ${ctx.raw} kg` },
@@ -1515,7 +1515,7 @@ function renderGymChart(exerciseId, sets) {
         },
         scales: {
           x: { grid: { display: false }, border: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 6 } },
-          y: { grid: { color: '#1e293b' }, border: { display: false }, ticks: { font: { size: 10 }, callback: (v) => `${v}kg` } },
+          y: { grid: { color: '#171717' }, border: { display: false }, ticks: { font: { size: 10 }, callback: (v) => `${v}kg` } },
         },
       },
     });
@@ -1561,9 +1561,9 @@ function renderGymPartner({ partner, myWeeklyVolume } = {}) {
 
   if (!partner) {
     el.innerHTML = `
-      <div class="bg-slate-900 rounded-2xl border border-slate-800 p-4">
-        <p class="text-xs text-slate-400 uppercase tracking-widest font-medium mb-3">Compañero de gym</p>
-        <p class="text-xs text-slate-500 mb-4">Vincula a un compañero para comparar vuestro progreso y competir cada semana.</p>
+      <div class="bg-neutral-900 rounded-2xl border border-neutral-800 p-4">
+        <p class="text-xs text-neutral-400 uppercase tracking-widest font-medium mb-3">Compañero de gym</p>
+        <p class="text-xs text-neutral-500 mb-4">Vincula a un compañero para comparar vuestro progreso y competir cada semana.</p>
         <div class="flex gap-2">
           <button onclick="invitePartner()"
             class="flex-1 bg-violet-500/15 hover:bg-violet-500/25 active:scale-95 text-violet-400
@@ -1574,7 +1574,7 @@ function renderGymPartner({ partner, myWeeklyVolume } = {}) {
             Generar código
           </button>
           <button onclick="openJoinModal()"
-            class="flex-1 bg-slate-800 hover:bg-slate-700 active:scale-95 text-slate-300
+            class="flex-1 bg-neutral-800 hover:bg-neutral-700 active:scale-95 text-neutral-300
                    rounded-xl py-2.5 text-xs font-semibold transition-all flex items-center justify-center gap-1.5">
             <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/>
@@ -1598,28 +1598,28 @@ function renderGymPartner({ partner, myWeeklyVolume } = {}) {
     : winning === 'losing'
     ? `¡${escapeHtml(partner.nickname)} va por delante! ${theirVol.toLocaleString('es-ES')} vs ${myVol.toLocaleString('es-ES')} kg·reps`
     : 'Igualados esta semana';
-  const msgColor = winning === 'winning' ? 'text-emerald-400' : winning === 'losing' ? 'text-rose-400' : 'text-slate-400';
+  const msgColor = winning === 'winning' ? 'text-indigo-400' : winning === 'losing' ? 'text-rose-400' : 'text-neutral-400';
 
   const muscleColors = {
     'Pecho':'bg-blue-500/15 text-blue-400','Hombro':'bg-purple-500/15 text-purple-400',
-    'Tríceps':'bg-orange-500/15 text-orange-400','Espalda':'bg-emerald-500/15 text-emerald-400',
+    'Tríceps':'bg-orange-500/15 text-orange-400','Espalda':'bg-indigo-500/15 text-indigo-400',
     'Bíceps':'bg-rose-500/15 text-rose-400','Pierna':'bg-amber-500/15 text-amber-400',
   };
 
   const exercisesHtml = partner.exercises.length > 0
     ? partner.exercises.map(e => `
-        <div class="flex items-center justify-between py-2 border-b border-slate-800 last:border-0">
+        <div class="flex items-center justify-between py-2 border-b border-neutral-800 last:border-0">
           <div class="flex items-center gap-2 min-w-0">
-            <span class="text-sm text-slate-300 truncate">${escapeHtml(e.name)}</span>
-            <span class="shrink-0 text-xs px-1.5 py-0.5 rounded-full ${muscleColors[e.muscle_group] || 'bg-slate-700 text-slate-400'}">${e.muscle_group}</span>
+            <span class="text-sm text-neutral-300 truncate">${escapeHtml(e.name)}</span>
+            <span class="shrink-0 text-xs px-1.5 py-0.5 rounded-full ${muscleColors[e.muscle_group] || 'bg-neutral-700 text-neutral-400'}">${e.muscle_group}</span>
           </div>
           ${e.pr ? `<span class="text-xs text-violet-400 shrink-0 ml-2">PR ${e.pr} kg</span>` : ''}
         </div>
       `).join('')
-    : '<p class="text-xs text-slate-600 py-2">Aún no tiene ejercicios.</p>';
+    : '<p class="text-xs text-neutral-600 py-2">Aún no tiene ejercicios.</p>';
 
   el.innerHTML = `
-    <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden">
+    <div class="bg-neutral-900 rounded-2xl border border-neutral-800 overflow-hidden">
       <!-- Header compañero -->
       <div class="p-4 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
@@ -1630,32 +1630,32 @@ function renderGymPartner({ partner, myWeeklyVolume } = {}) {
           </div>
           <div>
             <p class="text-sm font-semibold text-white">${escapeHtml(partner.nickname)}</p>
-            <p class="text-xs text-slate-500">Compañero de gym</p>
+            <p class="text-xs text-neutral-500">Compañero de gym</p>
           </div>
         </div>
         <button onclick="removePartner()"
-          class="text-xs text-slate-600 hover:text-rose-400 transition-colors px-2 py-1 rounded-lg hover:bg-rose-500/10">
+          class="text-xs text-neutral-600 hover:text-rose-400 transition-colors px-2 py-1 rounded-lg hover:bg-rose-500/10">
           Desvincular
         </button>
       </div>
 
       <!-- Reto semanal -->
-      <div class="px-4 pb-4 border-b border-slate-800">
-        <p class="text-xs text-slate-500 uppercase tracking-widest mb-3">Reto semanal · Volumen total</p>
+      <div class="px-4 pb-4 border-b border-neutral-800">
+        <p class="text-xs text-neutral-500 uppercase tracking-widest mb-3">Reto semanal · Volumen total</p>
         <div class="space-y-2 mb-2">
           <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-400 w-16 shrink-0">Tú</span>
-            <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
-              <div class="h-full bg-emerald-500 rounded-full transition-all duration-700" style="width:${myPct}%"></div>
+            <span class="text-xs text-neutral-400 w-16 shrink-0">Tú</span>
+            <div class="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
+              <div class="h-full bg-indigo-500 rounded-full transition-all duration-700" style="width:${myPct}%"></div>
             </div>
-            <span class="text-xs text-slate-400 w-20 text-right shrink-0">${myVol.toLocaleString('es-ES')} kg</span>
+            <span class="text-xs text-neutral-400 w-20 text-right shrink-0">${myVol.toLocaleString('es-ES')} kg</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-400 w-16 shrink-0 truncate">${escapeHtml(partner.nickname)}</span>
-            <div class="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden">
+            <span class="text-xs text-neutral-400 w-16 shrink-0 truncate">${escapeHtml(partner.nickname)}</span>
+            <div class="flex-1 h-2 bg-neutral-800 rounded-full overflow-hidden">
               <div class="h-full bg-violet-500 rounded-full transition-all duration-700" style="width:${theirPct}%"></div>
             </div>
-            <span class="text-xs text-slate-400 w-20 text-right shrink-0">${theirVol.toLocaleString('es-ES')} kg</span>
+            <span class="text-xs text-neutral-400 w-20 text-right shrink-0">${theirVol.toLocaleString('es-ES')} kg</span>
           </div>
         </div>
         <p class="text-xs font-medium ${msgColor}">${challengeMsg}</p>
@@ -1663,7 +1663,7 @@ function renderGymPartner({ partner, myWeeklyVolume } = {}) {
 
       <!-- Ejercicios del compañero -->
       <div class="p-4">
-        <p class="text-xs text-slate-500 uppercase tracking-widest mb-2">Sus ejercicios</p>
+        <p class="text-xs text-neutral-500 uppercase tracking-widest mb-2">Sus ejercicios</p>
         ${exercisesHtml}
       </div>
     </div>
