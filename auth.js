@@ -3,7 +3,7 @@
 //  Gestión de autenticación con el backend propio
 // =============================================================================
 
-const API_URL = 'https://nutritrack-production-3a0d.up.railway.app';
+const API_URL = 'https://nutritrack-jj26.onrender.com';
 
 // ─── TOKEN EN SESSION STORAGE ─────────────────────────────────────────────────
 
