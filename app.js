@@ -1,5 +1,5 @@
 // =============================================================================
-//  NutriTrack — app.js
+//  Temple — app.js
 //  Arquitectura: Frontend → Backend propio (Railway) + Supabase Auth
 // =============================================================================
 
@@ -135,7 +135,7 @@ async function loadProfile() {
     nickname   = profile.nickname || '';
     updateGoalLabels();
   } catch (err) {
-    console.error('[NutriTrack] GET /api/profile error:', err);
+    console.error('[Temple] GET /api/profile error:', err);
     updateGoalLabels(); // usar defaults igualmente
   }
 }
@@ -210,7 +210,7 @@ async function handleSaveGoals() {
     showModalStatus('¡Objetivos guardados!', 'success');
     setTimeout(closeSettingsModal, 1200);
   } catch (err) {
-    console.error('[NutriTrack] POST /api/profile error:', err);
+    console.error('[Temple] POST /api/profile error:', err);
     showModalStatus('Error al guardar. Inténtalo de nuevo.', 'error');
   } finally {
     setSaveLoading(false);
@@ -271,7 +271,7 @@ async function handleSubmit() {
   } catch (err) {
     setLoading(false);
     showStatus(err.message || 'Error al registrar el alimento. Inténtalo de nuevo.', 'error');
-    console.error('[NutriTrack] POST /api/food error:', err);
+    console.error('[Temple] POST /api/food error:', err);
   }
 }
 
@@ -316,7 +316,7 @@ async function loadData() {
     state = data;
     renderUI(data);
   } catch (err) {
-    console.error('[NutriTrack] GET /api/data error:', err);
+    console.error('[Temple] GET /api/data error:', err);
     renderUI(state);
   }
 }
@@ -334,7 +334,7 @@ async function loadEntriesToday() {
     const entries = await res.json();
     renderEntries(entries);
   } catch (err) {
-    console.error('[NutriTrack] GET /api/entries/today error:', err);
+    console.error('[Temple] GET /api/entries/today error:', err);
   }
 }
 
@@ -384,7 +384,7 @@ async function deleteEntry(id) {
 
     await Promise.all([loadData(), loadEntriesToday()]);
   } catch (err) {
-    console.error('[NutriTrack] DELETE /api/entries/:id error:', err);
+    console.error('[Temple] DELETE /api/entries/:id error:', err);
     showStatus('Error al eliminar la entrada.', 'error');
   }
 }
@@ -399,13 +399,13 @@ function initInvite() {
 
   btn.addEventListener('click', async () => {
     const appUrl  = window.location.origin + window.location.pathname.replace('app.html', '');
-    const message = `¡Te invito a NutriTrack! 🥗\nLleva el control de tu alimentación diaria.\n\n📲 Descárgala aquí: ${appUrl}\n\nUsa el código de invitación: ${inviteCode}`;
+    const message = `¡Te invito a Temple! 🥗\nLleva el control de tu alimentación diaria.\n\n📲 Descárgala aquí: ${appUrl}\n\nUsa el código de invitación: ${inviteCode}`;
 
     if (navigator.share) {
       try {
         await navigator.share({ text: message });
       } catch (err) {
-        if (err.name !== 'AbortError') console.error('[NutriTrack] share error:', err);
+        if (err.name !== 'AbortError') console.error('[Temple] share error:', err);
       }
     } else {
       // Fallback: copiar al portapapeles en desktop
@@ -469,7 +469,7 @@ async function handleChatSend() {
     const { reply } = await res.json();
     appendChatMessage('model', reply);
   } catch (err) {
-    console.error('[NutriTrack] POST /api/chat error:', err);
+    console.error('[Temple] POST /api/chat error:', err);
     appendChatMessage('model', 'Lo siento, ha ocurrido un error. Inténtalo de nuevo.');
   } finally {
     setChatLoading(false);
@@ -579,7 +579,7 @@ async function loadGroups() {
     userGroups = await res.json();
     renderGroupsList();
   } catch (err) {
-    console.error('[NutriTrack] GET /api/groups error:', err);
+    console.error('[Temple] GET /api/groups error:', err);
   }
 }
 
@@ -618,7 +618,7 @@ async function selectGroup(groupId) {
     rankingData = await res.json();
     renderRanking();
   } catch (err) {
-    console.error('[NutriTrack] GET ranking error:', err);
+    console.error('[Temple] GET ranking error:', err);
     $('ranking-list').innerHTML = `<p class="text-xs text-rose-400 text-center py-4">Error al cargar el ranking.</p>`;
   }
 }
@@ -747,7 +747,7 @@ async function toggleNotifications() {
       updateNotifToggleUI(false);
       showModalStatus('Recordatorios desactivados.', 'success');
     } catch (err) {
-      console.error('[NutriTrack] unsubscribe error:', err);
+      console.error('[Temple] unsubscribe error:', err);
     }
   } else {
     // Suscribirse
@@ -777,7 +777,7 @@ async function toggleNotifications() {
       updateNotifToggleUI(true);
       showModalStatus('¡Recordatorios activados!', 'success');
     } catch (err) {
-      console.error('[NutriTrack] subscribe error:', err);
+      console.error('[Temple] subscribe error:', err);
       showModalStatus('Error al activar notificaciones.', 'error');
     }
   }
@@ -824,7 +824,7 @@ async function loadWeight() {
     const entries = await res.json();
     renderWeightChart(entries);
   } catch (err) {
-    console.error('[NutriTrack] GET /api/weight error:', err);
+    console.error('[Temple] GET /api/weight error:', err);
   }
 }
 
@@ -862,7 +862,7 @@ async function saveWeight() {
 
     await loadWeight();
   } catch (err) {
-    console.error('[NutriTrack] POST /api/weight error:', err);
+    console.error('[Temple] POST /api/weight error:', err);
     status.textContent = 'Error al guardar. Inténtalo de nuevo.';
     status.className   = 'text-xs mt-2 text-rose-400';
     status.classList.remove('hidden');
@@ -1241,7 +1241,7 @@ async function loadGymExercises() {
     gymExercises = await res.json();
     renderGymExercises();
   } catch (err) {
-    console.error('[NutriTrack] GET /api/gym/exercises error:', err);
+    console.error('[Temple] GET /api/gym/exercises error:', err);
   }
 }
 
@@ -1345,7 +1345,7 @@ async function deleteGymExercise(id) {
     gymExercises = gymExercises.filter(e => e.id !== id);
     renderGymExercises();
   } catch (err) {
-    console.error('[NutriTrack] DELETE /api/gym/exercises/:id error:', err);
+    console.error('[Temple] DELETE /api/gym/exercises/:id error:', err);
   }
 }
 
@@ -1379,7 +1379,7 @@ async function logGymSet(exerciseId) {
       await loadAndRenderGymChart(exerciseId);
     }
   } catch (err) {
-    console.error('[NutriTrack] POST /api/gym/sets error:', err);
+    console.error('[Temple] POST /api/gym/sets error:', err);
   }
 }
 
@@ -1405,7 +1405,7 @@ async function loadAndRenderGymChart(exerciseId) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       gymSetsCache[exerciseId] = await res.json();
     } catch (err) {
-      console.error('[NutriTrack] GET /api/gym/sets error:', err);
+      console.error('[Temple] GET /api/gym/sets error:', err);
       return;
     }
   }
@@ -1535,7 +1535,7 @@ async function deleteGymSet(setId, exerciseId) {
     if (gymCharts[exerciseId]) { gymCharts[exerciseId].destroy(); delete gymCharts[exerciseId]; }
     await loadAndRenderGymChart(exerciseId);
   } catch (err) {
-    console.error('[NutriTrack] DELETE /api/gym/sets/:id error:', err);
+    console.error('[Temple] DELETE /api/gym/sets/:id error:', err);
   }
 }
 
@@ -1551,7 +1551,7 @@ async function loadGymPartner() {
     gymPartnerData = await res.json();
     renderGymPartner(gymPartnerData);
   } catch (err) {
-    console.error('[NutriTrack] GET /api/gym/partner error:', err);
+    console.error('[Temple] GET /api/gym/partner error:', err);
   }
 }
 
@@ -1682,10 +1682,10 @@ async function invitePartner() {
     if (!res.ok) throw new Error(data.error || `HTTP ${res.status}`);
 
     const code = data.code;
-    const msg  = `Mi código de compañero en NutriTrack Gym: ${code}`;
+    const msg  = `Mi código de compañero en Temple Gym: ${code}`;
 
     if (navigator.share) {
-      navigator.share({ title: 'NutriTrack Gym', text: msg }).catch(() => {});
+      navigator.share({ title: 'Temple Gym', text: msg }).catch(() => {});
     } else if (navigator.clipboard) {
       await navigator.clipboard.writeText(code);
       // Mostrar el código en el botón temporalmente
@@ -1693,7 +1693,7 @@ async function invitePartner() {
       if (btn) { btn.textContent = `Código: ${code} (copiado)`; }
     }
   } catch (err) {
-    console.error('[NutriTrack] invite partner error:', err);
+    console.error('[Temple] invite partner error:', err);
     alert(err.message || 'Error al generar el código.');
   }
 }
@@ -1755,6 +1755,6 @@ async function removePartner() {
     gymPartnerData = null;
     renderGymPartner({});
   } catch (err) {
-    console.error('[NutriTrack] DELETE /api/gym/partner error:', err);
+    console.error('[Temple] DELETE /api/gym/partner error:', err);
   }
 }

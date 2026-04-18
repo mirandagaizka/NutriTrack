@@ -1,6 +1,6 @@
 {
-  "name": "NutriTrack",
-  "short_name": "NutriTrack",
+  "name": "Temple",
+  "short_name": "Temple",
   "description": "Seguimiento de nutrición y macros diarios",
   "start_url": "./index.html",
   "display": "standalone",

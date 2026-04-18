@@ -1,5 +1,5 @@
-// ─── NutriTrack Service Worker ────────────────────────────────────────────────
-const CACHE_NAME = 'nutritrack-v9';
+// ─── Temple Service Worker ────────────────────────────────────────────────
+const CACHE_NAME = 'temple-v10';
 const APP_SHELL = [
   './',
   './index.html',
@@ -72,11 +72,11 @@ self.addEventListener('fetch', (event) => {
 self.addEventListener('push', (event) => {
   const data = event.data?.json() ?? {};
   event.waitUntil(
-    self.registration.showNotification(data.title || 'NutriTrack', {
+    self.registration.showNotification(data.title || 'Temple', {
       body:  data.body || '¿Has registrado lo que has comido hoy?',
       icon:  './icons/icon-192.png',
       badge: './icons/icon-192.png',
-      tag:   'nutritrack-reminder',
+      tag:   'temple-reminder',
     })
   );
 });

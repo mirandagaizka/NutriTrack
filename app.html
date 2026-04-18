@@ -8,11 +8,11 @@
   <meta name="theme-color" content="#0a0a0a" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="NutriTrack" />
+  <meta name="apple-mobile-web-app-title" content="Temple" />
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-  <title>NutriTrack</title>
+  <title>Temple</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -102,7 +102,7 @@
             <path d="M16 6C11 9 9 13 10 18C11 23 14 25 16 25.5C18 25 21 23 22 18C23 13 21 9 16 6Z" fill="#6366f1"/>
             <path d="M16 25.5V11" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
           </svg>
-          <h1 class="text-xl font-bold tracking-tight text-white">NutriTrack</h1>
+          <h1 class="text-xl font-bold tracking-tight text-white">Temple</h1>
         </div>
         <p id="current-date" class="text-xs text-neutral-500 mt-0.5 ml-0.5 capitalize"></p>
       </div>
@@ -170,7 +170,7 @@
               inputmode="text"
               autocomplete="off"
               placeholder="Ej: 150g de pechuga a la plancha"
-              class="flex-1 bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600
+              class="flex-1 bg-neutral-800 rounded-xl px-4 py-3 text-base text-white placeholder-neutral-600
                      border border-neutral-700 focus:outline-none focus:border-indigo-500/70
                      focus:ring-1 focus:ring-indigo-500/30 transition-all"
             />
@@ -334,7 +334,7 @@
                 inputmode="decimal"
                 placeholder="70.5"
                 min="20" max="500" step="0.1"
-                class="w-full bg-neutral-800 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-neutral-600
+                class="w-full bg-neutral-800 rounded-xl px-4 py-3 pr-10 text-base text-white placeholder-neutral-600
                        border border-neutral-700 focus:outline-none focus:border-indigo-500/70
                        focus:ring-1 focus:ring-indigo-500/30 transition-all"
               />
@@ -436,7 +436,7 @@
         <div id="form-create-group" class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 hidden">
           <p class="text-xs text-neutral-400 uppercase tracking-widest mb-3 font-medium">Nuevo grupo</p>
           <input id="group-name-input" type="text" placeholder="Nombre del grupo" maxlength="40"
-            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600
+            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-base text-white placeholder-neutral-600
                    border border-neutral-700 focus:outline-none focus:border-indigo-500/70 transition-all mb-2"/>
           <div class="flex gap-2">
             <button id="btn-create-group-confirm"
@@ -455,7 +455,7 @@
         <div id="form-join-group" class="bg-neutral-900 rounded-2xl p-4 border border-neutral-800 hidden">
           <p class="text-xs text-neutral-400 uppercase tracking-widest mb-3 font-medium">Unirse con código</p>
           <input id="group-code-input" type="text" placeholder="Código del grupo (ej: ABC123)" maxlength="6"
-            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600
+            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-base text-white placeholder-neutral-600
                    border border-neutral-700 focus:outline-none focus:border-indigo-500/70 transition-all mb-2 uppercase"/>
           <div class="flex gap-2">
             <button id="btn-join-group-confirm"
@@ -636,7 +636,7 @@
           </svg>
         </div>
         <div>
-          <h2 class="text-sm font-semibold text-white">Asistente NutriTrack</h2>
+          <h2 class="text-sm font-semibold text-white">Asistente Temple</h2>
           <p class="text-xs text-neutral-500">Pregúntame lo que quieras sobre tu alimentación</p>
         </div>
       </div>
@@ -752,7 +752,7 @@
               min="500"
               max="9999"
               placeholder="2000"
-              class="w-full bg-neutral-800 rounded-xl px-4 py-3 pr-14 text-sm text-white placeholder-neutral-600
+              class="w-full bg-neutral-800 rounded-xl px-4 py-3 pr-14 text-base text-white placeholder-neutral-600
                      border border-neutral-700 focus:outline-none focus:border-indigo-500/70
                      focus:ring-1 focus:ring-indigo-500/30 transition-all"
             />
@@ -773,7 +773,7 @@
               min="10"
               max="999"
               placeholder="150"
-              class="w-full bg-neutral-800 rounded-xl px-4 py-3 pr-8 text-sm text-white placeholder-neutral-600
+              class="w-full bg-neutral-800 rounded-xl px-4 py-3 pr-8 text-base text-white placeholder-neutral-600
                      border border-neutral-700 focus:outline-none focus:border-blue-500/70
                      focus:ring-1 focus:ring-blue-500/30 transition-all"
             />
@@ -846,7 +846,7 @@
         <div>
           <label class="block text-xs text-neutral-400 uppercase tracking-widest font-medium mb-1.5">Nombre del ejercicio</label>
           <input id="gym-exercise-name" type="text" autocomplete="off" placeholder="Ej: Press banca"
-            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600
+            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-base text-white placeholder-neutral-600
                    border border-neutral-700 focus:outline-none focus:border-indigo-500/70
                    focus:ring-1 focus:ring-indigo-500/30 transition-all"/>
         </div>
@@ -892,7 +892,7 @@
         <div>
           <label class="block text-xs text-neutral-400 uppercase tracking-widest font-medium mb-1.5">Código de tu compañero</label>
           <input id="gym-join-code" type="text" autocomplete="off" placeholder="Ej: AB3X7K" maxlength="6"
-            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-sm text-white placeholder-neutral-600 uppercase
+            class="w-full bg-neutral-800 rounded-xl px-4 py-3 text-base text-white placeholder-neutral-600 uppercase
                    border border-neutral-700 focus:outline-none focus:border-indigo-500/70
                    focus:ring-1 focus:ring-indigo-500/30 transition-all tracking-widest text-center font-mono text-lg"/>
         </div>
