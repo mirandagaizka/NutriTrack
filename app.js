@@ -1017,16 +1017,9 @@ function renderMacroChart(today) {
   macroChart.update('active');
 }
 
-// ─── DESGLOSE DE MACROS (modal al clicar el gráfico) ─────────────────────────
-function showMacroBreakdown(macroIndex) {
-  const keys   = ['proteins', 'carbs', 'fats'];
-  const labels = ['Proteínas', 'Carbohidratos', 'Grasas'];
-  const colors = ['#60a5fa', '#fbbf24', '#fb7185'];
-
-  const key   = keys[macroIndex];
-  const color = colors[macroIndex];
+// ─── DESGLOSE DE ALIMENTOS (modal genérico) ───────────────────────────────────
+function showFoodBreakdown(key, label, color, unit = 'g') {
   const total = todayEntries.reduce((s, e) => s + (e[key] || 0), 0);
-
   if (total === 0 || !todayEntries.length) return;
 
   const sorted = [...todayEntries]
@@ -1034,7 +1027,7 @@ function showMacroBreakdown(macroIndex) {
     .sort((a, b) => b[key] - a[key]);
 
   $('macro-modal-dot').style.backgroundColor = color;
-  $('macro-modal-title').textContent = `${labels[macroIndex]} · ${Math.round(total)}g totales`;
+  $('macro-modal-title').textContent = `${label} · ${Math.round(total)}${unit} totales`;
 
   $('macro-modal-body').innerHTML = sorted.map(e => {
     const pct = Math.round((e[key] / total) * 100);
@@ -1047,7 +1040,7 @@ function showMacroBreakdown(macroIndex) {
         <div class="h-1.5 rounded-full bg-neutral-800 overflow-hidden">
           <div class="h-full rounded-full" style="width:${pct}%;background-color:${color}"></div>
         </div>
-        <p class="text-xs text-neutral-500 mt-0.5">${Math.round(e[key])}g</p>
+        <p class="text-xs text-neutral-500 mt-0.5">${Math.round(e[key])}${unit}</p>
       </div>`;
   }).join('');
 
@@ -1057,6 +1050,13 @@ function showMacroBreakdown(macroIndex) {
   requestAnimationFrame(() => {
     requestAnimationFrame(() => sheet.classList.remove('translate-y-full'));
   });
+}
+
+function showMacroBreakdown(macroIndex) {
+  const keys   = ['proteins', 'carbs', 'fats'];
+  const labels = ['Proteínas', 'Carbohidratos', 'Grasas'];
+  const colors = ['#60a5fa', '#fbbf24', '#fb7185'];
+  showFoodBreakdown(keys[macroIndex], labels[macroIndex], colors[macroIndex]);
 }
 
 function closeMacroModal() {
