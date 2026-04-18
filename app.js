@@ -27,6 +27,7 @@ let state = {
   today:  { calories: 0, proteins: 0, carbs: 0, fats: 0 },
   weekly: [],
 };
+let todayEntries = [];
 let macroChart   = null;
 let weeklyChart  = null;
 let weightChart  = null;
@@ -332,6 +333,7 @@ async function loadEntriesToday() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
 
     const entries = await res.json();
+    todayEntries = entries;
     renderEntries(entries);
   } catch (err) {
     console.error('[Temple] GET /api/entries/today error:', err);
@@ -1015,6 +1017,54 @@ function renderMacroChart(today) {
   macroChart.update('active');
 }
 
+// ─── DESGLOSE DE MACROS (modal al clicar el gráfico) ─────────────────────────
+function showMacroBreakdown(macroIndex) {
+  const keys   = ['proteins', 'carbs', 'fats'];
+  const labels = ['Proteínas', 'Carbohidratos', 'Grasas'];
+  const colors = ['#60a5fa', '#fbbf24', '#fb7185'];
+
+  const key   = keys[macroIndex];
+  const color = colors[macroIndex];
+  const total = todayEntries.reduce((s, e) => s + (e[key] || 0), 0);
+
+  if (total === 0 || !todayEntries.length) return;
+
+  const sorted = [...todayEntries]
+    .filter(e => (e[key] || 0) > 0)
+    .sort((a, b) => b[key] - a[key]);
+
+  $('macro-modal-dot').style.backgroundColor = color;
+  $('macro-modal-title').textContent = `${labels[macroIndex]} · ${Math.round(total)}g totales`;
+
+  $('macro-modal-body').innerHTML = sorted.map(e => {
+    const pct = Math.round((e[key] / total) * 100);
+    return `
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-sm text-neutral-200 truncate max-w-[72%]">${escapeHtml(e.food_name)}</span>
+          <span class="text-sm font-bold text-white">${pct}%</span>
+        </div>
+        <div class="h-1.5 rounded-full bg-neutral-800 overflow-hidden">
+          <div class="h-full rounded-full" style="width:${pct}%;background-color:${color}"></div>
+        </div>
+        <p class="text-xs text-neutral-500 mt-0.5">${Math.round(e[key])}g</p>
+      </div>`;
+  }).join('');
+
+  const modal = $('macro-modal');
+  const sheet = $('macro-modal-sheet');
+  modal.classList.remove('hidden');
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => sheet.classList.remove('translate-y-full'));
+  });
+}
+
+function closeMacroModal() {
+  const sheet = $('macro-modal-sheet');
+  sheet.classList.add('translate-y-full');
+  setTimeout(() => $('macro-modal').classList.add('hidden'), 300);
+}
+
 // ─── GRÁFICO BARRAS SEMANAL ───────────────────────────────────────────────────
 function renderWeeklyChart(weekly) {
   if (!weekly || weekly.length === 0) return;
@@ -1073,6 +1123,12 @@ function initCharts() {
             label: (ctx) => ` ${ctx.label}: ${Math.round(ctx.raw)}g`,
           },
         },
+      },
+      onClick: (_e, elements) => {
+        if (elements.length > 0) showMacroBreakdown(elements[0].index);
+      },
+      onHover: (_e, elements) => {
+        $('macro-chart').style.cursor = elements.length ? 'pointer' : 'default';
       },
     },
   });

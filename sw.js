@@ -1,5 +1,5 @@
 // ─── Temple Service Worker ────────────────────────────────────────────────
-const CACHE_NAME = 'temple-v10';
+const CACHE_NAME = 'temple-v11';
 const APP_SHELL = [
   './',
   './index.html',
