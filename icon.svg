@@ -2,12 +2,12 @@
   <!-- Fondo -->
   <rect width="512" height="512" rx="112" fill="#020617"/>
   <!-- Hoja / nutrición icon -->
-  <circle cx="256" cy="256" r="180" fill="#10b981" opacity="0.12"/>
+  <circle cx="256" cy="256" r="180" fill="#6366f1" opacity="0.12"/>
   <!-- Forma de hoja estilizada -->
-  <path d="M256 120 C180 160 140 220 160 290 C180 360 230 390 256 395 C282 390 332 360 352 290 C372 220 332 160 256 120 Z" fill="#10b981"/>
+  <path d="M256 120 C180 160 140 220 160 290 C180 360 230 390 256 395 C282 390 332 360 352 290 C372 220 332 160 256 120 Z" fill="#6366f1"/>
   <!-- Nervadura central -->
   <path d="M256 395 L256 180" stroke="#020617" stroke-width="10" stroke-linecap="round" opacity="0.6"/>
   <!-- Barras de progreso decorativas -->
   <rect x="140" y="430" width="232" height="10" rx="5" fill="#1e293b"/>
-  <rect x="140" y="430" width="160" height="10" rx="5" fill="#10b981"/>
+  <rect x="140" y="430" width="160" height="10" rx="5" fill="#6366f1"/>
 </svg>
