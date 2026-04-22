@@ -70,7 +70,7 @@ app.use(cors({
   credentials: true,
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // ─── HELPER: verificar token y devolver user_id ───────────────────────────────
 async function getUserFromToken(req) {
@@ -247,6 +247,97 @@ app.post('/api/food', async (req, res) => {
   }
 
   return res.json(macros);
+});
+
+// ─── POST /api/food/photo ─────────────────────────────────────────────────────
+app.post('/api/food/photo', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+
+  const { imageData, mimeType } = req.body;
+  if (!imageData || !mimeType) {
+    return res.status(400).json({ error: 'Faltan imageData o mimeType.' });
+  }
+
+  let result;
+  let retries = 3;
+  let success = false;
+
+  while (retries > 0 && !success) {
+    try {
+      const geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{
+              parts: [
+                {
+                  inline_data: {
+                    mime_type: mimeType,
+                    data: imageData,
+                  },
+                },
+                {
+                  text: 'Analiza esta imagen de comida. Identifica todos los alimentos visibles y estima los valores nutricionales totales del plato. Responde ÚNICAMENTE con JSON: {"food_name": "descripción breve del plato en español", "calories": X, "proteins": X, "carbs": X, "fats": X, "fiber": X}. Solo números en los campos numéricos, sin unidades, sin texto extra.',
+                },
+              ],
+            }],
+          }),
+        }
+      );
+
+      if (geminiRes.status === 429) {
+        console.error('[NutriTrack] Gemini foto: cuota agotada (429).');
+        return res.status(503).json({ error: 'Cuota de IA agotada. Vuelve a intentarlo mañana.' });
+      }
+
+      if (!geminiRes.ok) throw new Error(`Gemini HTTP ${geminiRes.status}`);
+
+      const geminiData = await geminiRes.json();
+      const rawText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+      const jsonMatch = rawText.match(/\{[\s\S]*?\}/);
+      if (!jsonMatch) throw new Error('Gemini no devolvió JSON válido');
+
+      result = JSON.parse(jsonMatch[0]);
+
+      const required = ['calories', 'proteins', 'carbs', 'fats', 'fiber'];
+      for (const field of required) {
+        if (typeof result[field] !== 'number') result[field] = 0;
+      }
+      if (!result.food_name || typeof result.food_name !== 'string') {
+        result.food_name = 'Plato analizado por foto';
+      }
+
+      success = true;
+    } catch (err) {
+      console.error(`[NutriTrack] Foto intento fallido (${4 - retries}/3):`, err.message);
+      retries--;
+      if (retries === 0) {
+        return res.status(500).json({ error: 'Servidores de IA saturados. Inténtalo en unos minutos.' });
+      }
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+  }
+
+  const { error: insertErr } = await supabase.from('food_entries').insert({
+    user_id:   user.id,
+    food_name: result.food_name,
+    calories:  result.calories,
+    proteins:  result.proteins,
+    carbs:     result.carbs,
+    fats:      result.fats,
+    fiber:     result.fiber,
+  });
+
+  if (insertErr) {
+    console.error('[NutriTrack] Insert foto error:', insertErr);
+    return res.status(500).json({ error: 'Error al guardar el alimento.' });
+  }
+
+  return res.json(result);
 });
 
 // ─── GET /api/data ────────────────────────────────────────────────────────────

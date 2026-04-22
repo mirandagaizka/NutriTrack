@@ -116,6 +116,94 @@ function initForm() {
   $('food-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter') handleSubmit();
   });
+  initPhotoCapture();
+}
+
+// ─── FOTO / ANÁLISIS IA ───────────────────────────────────────────────────────
+function initPhotoCapture() {
+  const cameraBtn  = $('camera-btn');
+  const photoInput = $('photo-input');
+  const modal      = $('photo-modal');
+  const backdrop   = $('photo-modal-backdrop');
+  const closeBtn   = $('photo-modal-close');
+
+  cameraBtn.addEventListener('click', () => photoInput.click());
+
+  photoInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Mostrar modal con preview
+    const url = URL.createObjectURL(file);
+    $('photo-preview').src = url;
+    $('photo-result').classList.add('hidden');
+    $('photo-error').classList.add('hidden');
+    $('photo-analyzing').classList.remove('hidden');
+    modal.classList.remove('hidden');
+
+    // Convertir a base64 y enviar
+    try {
+      const base64 = await fileToBase64(file);
+      const imageData = base64.split(',')[1]; // quitar el prefijo data:image/...;base64,
+      const mimeType  = file.type || 'image/jpeg';
+
+      const res = await fetch(`${API_URL}/api/food/photo`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ imageData, mimeType }),
+      });
+
+      $('photo-analyzing').classList.add('hidden');
+
+      if (res.status === 401) { logout(); return; }
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      $('photo-food-name').textContent = data.food_name;
+      $('photo-cal').textContent   = Math.round(data.calories);
+      $('photo-prot').textContent  = Math.round(data.proteins) + 'g';
+      $('photo-carbs').textContent = Math.round(data.carbs) + 'g';
+      $('photo-fats').textContent  = Math.round(data.fats) + 'g';
+      $('photo-result').classList.remove('hidden');
+
+      // Recargar datos
+      await Promise.all([loadData(), loadEntriesToday()]);
+
+      // Cerrar modal tras 2 segundos
+      setTimeout(closePhotoModal, 2000);
+
+    } catch (err) {
+      $('photo-analyzing').classList.add('hidden');
+      $('photo-error-msg').textContent = err.message || 'Error al analizar la foto. Inténtalo de nuevo.';
+      $('photo-error').classList.remove('hidden');
+      console.error('[Temple] POST /api/food/photo error:', err);
+    } finally {
+      photoInput.value = ''; // Permitir seleccionar la misma foto de nuevo
+    }
+  });
+
+  backdrop.addEventListener('click', closePhotoModal);
+  closeBtn.addEventListener('click', closePhotoModal);
+}
+
+function closePhotoModal() {
+  $('photo-modal').classList.add('hidden');
+  const prev = $('photo-preview');
+  if (prev.src) URL.revokeObjectURL(prev.src);
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result);
+    reader.onerror = () => reject(new Error('Error al leer el archivo'));
+    reader.readAsDataURL(file);
+  });
 }
 
 // ─── PERFIL / OBJETIVOS ───────────────────────────────────────────────────────
