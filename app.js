@@ -223,6 +223,11 @@ async function loadProfile() {
     inviteCode = profile.inviteCode || '';
     nickname   = profile.nickname || '';
     updateGoalLabels();
+
+    if (isAdmin) {
+      $('pending-users-section').classList.remove('hidden');
+      loadPendingUsers();
+    }
   } catch (err) {
     console.error('[Temple] GET /api/profile error:', err);
     updateGoalLabels(); // usar defaults igualmente
@@ -476,6 +481,79 @@ async function deleteEntry(id) {
   } catch (err) {
     console.error('[Temple] DELETE /api/entries/:id error:', err);
     showStatus('Error al eliminar la entrada.', 'error');
+  }
+}
+
+// ─── ADMIN: SOLICITUDES PENDIENTES ───────────────────────────────────────────
+async function loadPendingUsers() {
+  try {
+    const res = await fetch(`${API_URL}/api/admin/pending`, { headers: authHeaders() });
+    if (!res.ok) return;
+    const users = await res.json();
+
+    const badge   = $('pending-badge');
+    const settingsBadge = $('settings-badge');
+    const list    = $('pending-users-list');
+
+    if (users.length === 0) {
+      badge.classList.add('hidden');
+      settingsBadge.classList.add('hidden');
+      list.innerHTML = '<p class="text-xs text-neutral-500">No hay solicitudes pendientes.</p>';
+      return;
+    }
+
+    badge.textContent = users.length;
+    badge.classList.remove('hidden');
+    settingsBadge.classList.remove('hidden');
+
+    list.innerHTML = users.map(u => `
+      <div class="flex items-center justify-between bg-neutral-800 rounded-xl px-3 py-2.5 gap-2">
+        <div class="min-w-0">
+          <p class="text-sm font-medium text-white truncate">${u.nickname || u.email}</p>
+          <p class="text-xs text-neutral-500 truncate">${u.email}</p>
+        </div>
+        <div class="flex gap-1.5 shrink-0">
+          <button
+            onclick="approveUser('${u.userId}')"
+            class="bg-indigo-500 hover:bg-indigo-400 active:scale-95 text-white text-xs font-semibold rounded-lg px-2.5 py-1.5 transition-all"
+          >Aceptar</button>
+          <button
+            onclick="rejectUser('${u.userId}')"
+            class="bg-neutral-700 hover:bg-rose-500/80 active:scale-95 text-neutral-300 hover:text-white text-xs font-semibold rounded-lg px-2.5 py-1.5 transition-all"
+          >Rechazar</button>
+        </div>
+      </div>
+    `).join('');
+  } catch (err) {
+    console.error('[Temple] loadPendingUsers error:', err);
+  }
+}
+
+async function approveUser(userId) {
+  try {
+    const res = await fetch(`${API_URL}/api/admin/approve/${userId}`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error();
+    showModalStatus('Usuario aprobado.', 'success');
+    loadPendingUsers();
+  } catch {
+    showModalStatus('Error al aprobar el usuario.', 'error');
+  }
+}
+
+async function rejectUser(userId) {
+  try {
+    const res = await fetch(`${API_URL}/api/admin/reject/${userId}`, {
+      method: 'POST',
+      headers: authHeaders(),
+    });
+    if (!res.ok) throw new Error();
+    showModalStatus('Usuario rechazado.', 'success');
+    loadPendingUsers();
+  } catch {
+    showModalStatus('Error al rechazar el usuario.', 'error');
   }
 }
 

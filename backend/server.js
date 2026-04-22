@@ -72,6 +72,27 @@ app.use(cors({
 
 app.use(express.json({ limit: '10mb' }));
 
+// ─── HELPER: enviar push al admin ────────────────────────────────────────────
+async function notifyAdmin(title, body) {
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY || !ADMIN_EMAIL) return;
+  try {
+    const { data: users } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+    const adminUser = users?.users?.find(u => u.email === ADMIN_EMAIL);
+    if (!adminUser) return;
+
+    const { data: sub } = await supabase
+      .from('push_subscriptions')
+      .select('subscription')
+      .eq('user_id', adminUser.id)
+      .maybeSingle();
+    if (!sub) return;
+
+    await webpush.sendNotification(sub.subscription, JSON.stringify({ title, body }));
+  } catch (err) {
+    console.error('[NutriTrack] notifyAdmin error:', err.message);
+  }
+}
+
 // ─── HELPER: verificar token y devolver user_id ───────────────────────────────
 async function getUserFromToken(req) {
   const authHeader = req.headers.authorization;
@@ -126,12 +147,30 @@ app.post('/api/auth/register', async (req, res) => {
     return res.status(500).json({ error: 'Cuenta creada pero no se pudo iniciar sesión.' });
   }
 
-  // Guardar nickname en el perfil
-  if (nickname && nickname.trim()) {
-    await supabase.from('user_profiles').upsert(
-      { user_id: session.user.id, nickname: nickname.trim(), target_calories: 2000, target_proteins: 150 },
-      { onConflict: 'user_id' }
+  // Determinar si es admin (se aprueba automáticamente)
+  const isAdminEmail = ADMIN_EMAIL && session.user.email === ADMIN_EMAIL;
+  const status = isAdminEmail ? 'approved' : 'pending';
+
+  // Guardar perfil con status
+  await supabase.from('user_profiles').upsert(
+    {
+      user_id:         session.user.id,
+      nickname:        nickname?.trim() || '',
+      target_calories: 2000,
+      target_proteins: 150,
+      status,
+    },
+    { onConflict: 'user_id' }
+  );
+
+  // Si no es admin, notificar al admin y no devolver token
+  if (!isAdminEmail) {
+    const displayName = nickname?.trim() || session.user.email;
+    await notifyAdmin(
+      '🔔 Nueva solicitud de acceso',
+      `${displayName} quiere unirse a Temple. Abre la app para aprobar o rechazar.`
     );
+    return res.json({ pending: true });
   }
 
   return res.json({
@@ -154,10 +193,77 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(401).json({ error: 'Credenciales incorrectas.' });
   }
 
+  // Comprobar estado de aprobación
+  const { data: profile } = await supabase
+    .from('user_profiles')
+    .select('status')
+    .eq('user_id', data.user.id)
+    .maybeSingle();
+
+  if (profile?.status === 'pending') {
+    return res.status(403).json({ error: 'Tu cuenta está pendiente de aprobación del administrador.', pending: true });
+  }
+  if (profile?.status === 'rejected') {
+    return res.status(403).json({ error: 'Tu solicitud de acceso fue rechazada.', rejected: true });
+  }
+
   return res.json({
     token: data.session.access_token,
     user:  { id: data.user.id, email: data.user.email },
   });
+});
+
+// ─── GET /api/admin/pending ───────────────────────────────────────────────────
+app.get('/api/admin/pending', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+  if (!ADMIN_EMAIL || user.email !== ADMIN_EMAIL) return res.status(403).json({ error: 'Solo el administrador.' });
+
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .select('user_id, nickname, created_at')
+    .eq('status', 'pending');
+
+  if (error) return res.status(500).json({ error: 'Error al obtener solicitudes.' });
+
+  const results = await Promise.all((data || []).map(async (profile) => {
+    const { data: authUser } = await supabase.auth.admin.getUserById(profile.user_id);
+    return {
+      userId:    profile.user_id,
+      nickname:  profile.nickname || '',
+      email:     authUser?.user?.email || '',
+      createdAt: profile.created_at,
+    };
+  }));
+
+  return res.json(results);
+});
+
+// ─── POST /api/admin/approve/:userId ─────────────────────────────────────────
+app.post('/api/admin/approve/:userId', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+  if (!ADMIN_EMAIL || user.email !== ADMIN_EMAIL) return res.status(403).json({ error: 'Solo el administrador.' });
+
+  const { error } = await supabase
+    .from('user_profiles')
+    .update({ status: 'approved' })
+    .eq('user_id', req.params.userId);
+
+  if (error) return res.status(500).json({ error: 'Error al aprobar.' });
+  return res.json({ ok: true });
+});
+
+// ─── POST /api/admin/reject/:userId ──────────────────────────────────────────
+app.post('/api/admin/reject/:userId', async (req, res) => {
+  const user = await getUserFromToken(req);
+  if (!user) return res.status(401).json({ error: 'No autorizado.' });
+  if (!ADMIN_EMAIL || user.email !== ADMIN_EMAIL) return res.status(403).json({ error: 'Solo el administrador.' });
+
+  const { userId } = req.params;
+  await supabase.from('user_profiles').update({ status: 'rejected' }).eq('user_id', userId);
+  await supabase.auth.admin.deleteUser(userId);
+  return res.json({ ok: true });
 });
 
 // ─── POST /api/food ───────────────────────────────────────────────────────────

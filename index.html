@@ -213,6 +213,20 @@
         </button>
       </form>
 
+      <!-- Pantalla de espera (tras registro pendiente) -->
+      <div id="pending-screen" class="hidden p-8 flex flex-col items-center gap-4 text-center">
+        <div class="w-16 h-16 rounded-full bg-indigo-500/15 flex items-center justify-center">
+          <svg class="w-8 h-8 text-indigo-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2m6-2a10 10 0 11-20 0 10 10 0 0120 0z"/>
+          </svg>
+        </div>
+        <div>
+          <p class="text-base font-semibold text-white mb-1">Solicitud enviada</p>
+          <p class="text-sm text-neutral-400">El administrador recibirá una notificación y te dará acceso en breve. Vuelve a iniciar sesión cuando te lo confirme.</p>
+        </div>
+        <button onclick="switchTab('login')" class="mt-2 text-indigo-400 text-sm font-medium">Ir a iniciar sesión</button>
+      </div>
+
     </div>
 
   </div>
@@ -264,7 +278,12 @@
       spinner.classList.add('hidden');
       btnText.textContent = 'Entrar';
 
-      if (result.error) {
+      if (result.pending) {
+        errorEl.className = 'text-xs text-indigo-400';
+        errorEl.textContent = '⏳ Tu cuenta está pendiente de aprobación. El administrador te dará acceso en breve.';
+        errorEl.classList.remove('hidden');
+      } else if (result.error) {
+        errorEl.className = 'text-xs text-rose-400';
         errorEl.textContent = result.error;
         errorEl.classList.remove('hidden');
       } else {
@@ -308,7 +327,11 @@
       spinner.classList.add('hidden');
       btnText.textContent = 'Crear cuenta';
 
-      if (result.error) {
+      if (result.pending) {
+        // Ocultar formulario, mostrar pantalla de espera
+        document.getElementById('form-register').classList.add('hidden');
+        document.getElementById('pending-screen').classList.remove('hidden');
+      } else if (result.error) {
         errorEl.textContent = result.error;
         errorEl.classList.remove('hidden');
       } else {

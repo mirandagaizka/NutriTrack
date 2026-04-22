@@ -42,7 +42,7 @@ async function login(email, password) {
     const data = await res.json();
 
     if (!res.ok) {
-      return { error: data.error || 'Credenciales incorrectas.' };
+      return { error: data.error || 'Credenciales incorrectas.', pending: data.pending, rejected: data.rejected };
     }
 
     setToken(data.token);
@@ -68,6 +68,10 @@ async function register(email, password, inviteCode, nickname) {
 
     if (!res.ok) {
       return { error: data.error || 'No se pudo crear la cuenta.' };
+    }
+
+    if (data.pending) {
+      return { pending: true };
     }
 
     setToken(data.token);
