@@ -914,10 +914,11 @@ app.get('/api/groups/:id/ranking', async (req, res) => {
 });
 
 // ─── CRON ENDPOINT: notificaciones push ───────────────────────────────────────
-// Disparado por un scheduler externo (ej. cron-job.org) con la cabecera
-// "x-cron-secret". Así el servicio puede dormir en el free tier de Render:
-// cada llamada lo despierta, hace el trabajo y se vuelve a dormir.
-app.post('/api/cron/check-notifications', async (req, res) => {
+// Disparado por un scheduler externo (ej. cron-job.org). Acepta GET o POST y
+// el secreto puede ir en la cabecera "x-cron-secret" o como ?secret=... en la
+// URL. Así el servicio puede dormir en el free tier de Render: cada llamada lo
+// despierta, hace el trabajo y se vuelve a dormir.
+app.all('/api/cron/check-notifications', async (req, res) => {
   const secret = req.headers['x-cron-secret'] || req.query.secret;
   if (!CRON_SECRET || secret !== CRON_SECRET) {
     return res.status(401).json({ error: 'No autorizado.' });
