@@ -7,7 +7,6 @@ import express from 'express';
 import cors from 'cors';
 import { createClient } from '@supabase/supabase-js';
 import webpush from 'web-push';
-import cron from 'node-cron';
 
 const app = express();
 
@@ -23,6 +22,7 @@ const {
   VAPID_PUBLIC_KEY,
   VAPID_PRIVATE_KEY,
   VAPID_SUBJECT,
+  CRON_SECRET,
 } = process.env;
 
 // Configurar web-push si hay claves VAPID
@@ -913,38 +913,52 @@ app.get('/api/groups/:id/ranking', async (req, res) => {
   return res.json(ranking);
 });
 
-// ─── CRON: notificaciones push ────────────────────────────────────────────────
-if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  cron.schedule('0 7-23 * * *', async () => {
-    console.log('[NutriTrack] Comprobando notificaciones push...');
-    const { data: subs } = await supabase.from('push_subscriptions').select('*');
-    const now = new Date();
-    const sixHoursAgo = new Date(now - 6 * 60 * 60 * 1000);
+// ─── CRON ENDPOINT: notificaciones push ───────────────────────────────────────
+// Disparado por un scheduler externo (ej. cron-job.org) con la cabecera
+// "x-cron-secret". Así el servicio puede dormir en el free tier de Render:
+// cada llamada lo despierta, hace el trabajo y se vuelve a dormir.
+app.post('/api/cron/check-notifications', async (req, res) => {
+  const secret = req.headers['x-cron-secret'] || req.query.secret;
+  if (!CRON_SECRET || secret !== CRON_SECRET) {
+    return res.status(401).json({ error: 'No autorizado.' });
+  }
 
-    for (const sub of subs || []) {
-      if (sub.last_notified_at && new Date(sub.last_notified_at) > sixHoursAgo) continue;
+  if (!VAPID_PUBLIC_KEY || !VAPID_PRIVATE_KEY) {
+    return res.json({ ok: true, skipped: 'VAPID no configurado' });
+  }
 
-      const { data: recent } = await supabase
-        .from('food_entries')
-        .select('id')
-        .eq('user_id', sub.user_id)
-        .gte('created_at', sixHoursAgo.toISOString())
-        .limit(1);
+  console.log('[NutriTrack] Comprobando notificaciones push...');
+  const { data: subs } = await supabase.from('push_subscriptions').select('*');
+  const now = new Date();
+  const sixHoursAgo = new Date(now - 6 * 60 * 60 * 1000);
+  let sent = 0;
 
-      if (recent && recent.length > 0) continue;
+  for (const sub of subs || []) {
+    if (sub.last_notified_at && new Date(sub.last_notified_at) > sixHoursAgo) continue;
 
-      try {
-        await webpush.sendNotification(
-          sub.subscription,
-          JSON.stringify({ title: 'NutriTrack 🥗', body: '¿Has registrado lo que has comido? ¡Mantén tu racha!' })
-        );
-        await supabase.from('push_subscriptions').update({ last_notified_at: now.toISOString() }).eq('id', sub.id);
-      } catch (err) {
-        if (err.statusCode === 410) await supabase.from('push_subscriptions').delete().eq('id', sub.id);
-      }
+    const { data: recent } = await supabase
+      .from('food_entries')
+      .select('id')
+      .eq('user_id', sub.user_id)
+      .gte('created_at', sixHoursAgo.toISOString())
+      .limit(1);
+
+    if (recent && recent.length > 0) continue;
+
+    try {
+      await webpush.sendNotification(
+        sub.subscription,
+        JSON.stringify({ title: 'NutriTrack 🥗', body: '¿Has registrado lo que has comido? ¡Mantén tu racha!' })
+      );
+      await supabase.from('push_subscriptions').update({ last_notified_at: now.toISOString() }).eq('id', sub.id);
+      sent++;
+    } catch (err) {
+      if (err.statusCode === 410) await supabase.from('push_subscriptions').delete().eq('id', sub.id);
     }
-  });
-}
+  }
+
+  return res.json({ ok: true, sent });
+});
 
 // ─── GYM PARTNER: helper ─────────────────────────────────────────────────────
 async function getAcceptedPartnership(userId) {
@@ -1205,13 +1219,10 @@ app.delete('/api/gym/sets/:id', async (req, res) => {
 // ─── HEALTHCHECK ──────────────────────────────────────────────────────────────
 app.get('/health', (_, res) => res.json({ status: 'ok' }));
 
-// ─── KEEPALIVE (evita que Render duerma el servicio en el free tier) ──────────
-const SELF_URL = process.env.RENDER_EXTERNAL_URL;
-if (SELF_URL) {
-  setInterval(() => {
-    fetch(`${SELF_URL}/health`).catch(() => {});
-  }, 10 * 60 * 1000); // cada 10 minutos
-}
+// NOTA: se eliminó el auto-ping (setInterval a /health cada 10 min). Mantenía el
+// servicio despierto 24/7 y agotaba las 750 h/mes del free tier de Render. Ahora
+// el servicio duerme cuando no se usa y las notificaciones las dispara un cron
+// externo contra /api/cron/check-notifications.
 
 // ─── ARRANQUE ─────────────────────────────────────────────────────────────────
 app.listen(PORT, () => {
